@@ -19,4 +19,18 @@ class Registration < ApplicationRecord
   def actual_price_cents
     ticket_price_cents - discount_cents
   end
+
+  def detect_conflict!
+    slots = workshops.map(&:time_slot)
+    conflicting = slots.tally.any? { |_, count| count > 1 } ||
+                  (slots.include?("journee") && slots.size > 1)
+    update_column(:has_conflict, conflicting)
+  end
+
+  def self.age_category_for(date_of_birth, edition_start_date)
+    return :enfant if date_of_birth.nil?
+    age = edition_start_date.year - date_of_birth.year
+    age -= 1 if edition_start_date < date_of_birth + age.years
+    age >= 18 ? :adulte : :enfant
+  end
 end

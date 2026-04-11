@@ -11,5 +11,9 @@ Rails.application.routes.draw do
 
   patch "session/edition", to: "sessions#update_edition", as: :update_edition_session
 
+  namespace :webhooks do
+    post "helloasso", to: "helloasso#create"
+  end
+
   root to: "dashboard#index"
 end
