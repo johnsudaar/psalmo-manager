@@ -84,7 +84,8 @@ validations, enums, and basic scopes. FactoryBot factories exist for all models.
 1. Generate migrations in dependency order (see `.plan/03-data-model.md`; `versions` table first
    via `rails generate paper_trail:install` — already done in Phase 1)
 2. Run all migrations
-3. Create all model files with associations, validations, enums, and `has_paper_trail`
+3. Create all model files with associations, validations, enums (`enfant`/`adulte`), and
+   `has_paper_trail`
 4. Create all FactoryBot factories in `spec/factories/`
 5. Write model unit tests (validations, associations, computed methods)
 6. Create `ApplicationHelper#format_euros` and `#format_date`

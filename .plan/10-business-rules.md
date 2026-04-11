@@ -8,47 +8,31 @@ file is the source of truth.
 
 ## Age Categories
 
-Age is computed at the **start date of the edition** (`edition.start_date`), not at the time of
-registration.
+A participant is either a **child** (`enfant`) or an **adult** (`adulte`). Age is determined
+from `date_of_birth` relative to `edition.start_date`.
 
-| Category | Enum value | Age range | Ticket price (2026) |
-|---|---|---|---|
-| `petit` | 0 | 0–5 ans (< 6) | 0 € |
-| `enfant` | 1 | 6–9 ans (6 ≤ age < 10) | 40 € |
-| `pre_ado` | 2 | 10–13 ans (10 ≤ age < 14) | 40 € |
-| `ado` | 3 | 14–17 ans (14 ≤ age < 18) | 100 € |
-| `adulte` | 4 | 18+ ans (age ≥ 18) | 100 € |
+| Category | Enum value | Rule |
+|---|---|---|
+| `enfant` | 0 | Under 18 on edition start date, OR date_of_birth unknown |
+| `adulte` | 1 | 18 or over on edition start date |
 
-**Important**: Prices listed above are for the 2026 edition. They may change in future editions.
-Prices are stored per `Registration` (as `ticket_price_cents`) and not re-computed from the
-category — the HelloAsso API and CSV export provide the actual charged amount.
+**Missing DOB**: Default to `enfant`. At Psalmodia most participants are children; an unknown age
+is safer treated as a child for pricing and safeguarding.
 
-### Age computation method
+### Category inference
 
 ```ruby
-def age_on(date)
-  return nil unless date_of_birth
-  years = date.year - date_of_birth.year
-  years -= 1 if date < date_of_birth + years.years
-  years
+def self.age_category_for(date_of_birth, edition_start_date)
+  return :enfant if date_of_birth.nil?
+  age = edition_start_date.year - date_of_birth.year
+  age -= 1 if edition_start_date < date_of_birth + age.years
+  age >= 18 ? :adulte : :enfant
 end
 ```
 
-### Category inference (for import)
-
-```ruby
-def self.age_category_for(age)
-  case age
-  when 0..5  then :petit
-  when 6..9  then :enfant
-  when 10..13 then :pre_ado
-  when 14..17 then :ado
-  else            :adulte
-  end
-end
-```
-
-If `date_of_birth` is nil (not provided), default to `:adulte` and flag for manual review.
+If `date_of_birth` is nil (not provided), default to `:enfant` and flag for manual review.
+This is a conservative choice: at Psalmodia most participants are children, so an unknown age
+should be treated as a child (not an adult) for pricing and safety purposes.
 
 ---
 
@@ -58,34 +42,25 @@ If `date_of_birth` is nil (not provided), default to `:adulte` and flag for manu
 |---|---|---|
 | `matin` | 0 | Morning session |
 | `apres_midi` | 1 | Afternoon session |
-| `journee` | 2 | Full-day session (counts as both matin + apres_midi) |
+| `journee` | 2 | Full-day session |
 
-**Constraint**: A participant cannot be enrolled in two workshops with conflicting slots.
-- A `journee` workshop conflicts with any other workshop on the same day.
-- A `matin` workshop conflicts with another `matin` workshop.
-- A `matin` workshop does NOT conflict with an `apres_midi` workshop.
-
-**Enforcement**: This constraint is validated at the `Registration` model level and also enforced
-in the workshop substitution controller.
+**Conflict detection**: When a participant is enrolled in two workshops with overlapping slots
+(two `matin`, two `apres_midi`, or any workshop alongside a `journee`), set
+`registration.has_conflict = true`. This is a flag for admin review — the import and sync never
+refuse or delete data because of slot conflicts.
 
 ```ruby
 # In Registration model
-validate :no_conflicting_workshops
-
-def no_conflicting_workshops
-  workshops.group_by(&:time_slot).each do |slot, ws|
-    if slot == "journee" && workshops.count > 1
-      errors.add(:base, "Un atelier journée ne peut pas être combiné avec un autre atelier")
-    end
-    if ws.count > 1
-      errors.add(:base, "Deux ateliers ne peuvent pas avoir le même créneau horaire")
-    end
-  end
-  if workshops.any? { |w| w.time_slot == "journee" } && workshops.count > 1
-    errors.add(:base, "Un atelier journée occupe toute la journée")
-  end
+def detect_conflict!
+  slots = workshops.map(&:time_slot)
+  conflicting = slots.tally.any? { |_, count| count > 1 } ||
+                (slots.include?("journee") && slots.size > 1)
+  update_column(:has_conflict, conflicting)
 end
 ```
+
+Admins see registrations with `has_conflict: true` highlighted in the participant list and can
+resolve them via the workshop substitution page.
 
 ---
 
@@ -94,8 +69,7 @@ end
 - `capacity: nil` means the workshop is unlimited.
 - `capacity: N` means at most N participants.
 - The `Workshop#full?` method returns true when `registrations.count >= capacity`.
-- **Enforcement**: The UI warns when a workshop is full but does not hard-block manual overrides
-  by an admin. (`is_override: true` bypasses capacity checks.)
+- The UI shows a warning when a workshop is full. Admins can always proceed regardless.
 
 ---
 
@@ -105,9 +79,9 @@ end
 2. A substitution replaces the participant's workshop in a given time slot.
 3. The old `registration_workshop` is deleted (not marked as inactive — it's gone).
 4. The new `registration_workshop` is created with `is_override: true`.
-5. If the new workshop has different pricing, `price_paid_cents` is set to the workshop's
-   `base_price_cents` unless the admin manually overrides it.
-6. Capacity check: warn if the target workshop is full, but allow admin to proceed.
+5. After the substitution, `detect_conflict!` is called on the registration to update
+   the `has_conflict` flag.
+6. If the target workshop is full, a warning is shown but the admin can still proceed.
 
 ---
 
@@ -136,7 +110,7 @@ Scope: `Registration.for_stats` returns `where(excluded_from_stats: false)`.
 ### Total billetterie revenue (edition)
 
 ```ruby
-edition.registrations.for_stats.sum(:actual_price_cents)
+edition.registrations.for_stats.sum("ticket_price_cents - discount_cents")
 ```
 
 ### Total atelier revenue (edition)
@@ -156,7 +130,7 @@ total_billetterie + total_ateliers
 ```
 
 Note: Promo codes (`orders.promo_amount_cents`) are already deducted from
-`registrations.actual_price_cents` in the HelloAsso data — do not double-count.
+`registrations.discount_cents` in the HelloAsso data — do not double-count.
 
 ---
 

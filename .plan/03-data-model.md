@@ -117,7 +117,6 @@ A single workshop offered during an edition.
 | `edition_id` | bigint | NOT NULL, FK | |
 | `name` | string | NOT NULL | e.g. "CIRQUE", "THÉATRE ENFANTS" |
 | `time_slot` | integer | NOT NULL | enum: matin/apres_midi/journee |
-| `base_price_cents` | integer | NOT NULL, default: 0 | |
 | `capacity` | integer | | nil = unlimited |
 | `helloasso_column_name` | string | | raw column name from Sheet 1 CSV |
 | `created_at` | datetime | | |
@@ -143,7 +142,6 @@ class Workshop < ApplicationRecord
 
   validates :name, :time_slot, presence: true
   validates :name, uniqueness: { scope: :edition_id }
-  validates :base_price_cents, numericality: { greater_than_or_equal_to: 0 }
 
   def fill_rate
     return nil if capacity.nil? || capacity.zero?
@@ -216,7 +214,6 @@ A HelloAsso order (one per family/group checkout).
 | `helloasso_order_id` | string | NOT NULL, UNIQUE | HelloAsso internal ID |
 | `order_date` | datetime | NOT NULL | |
 | `status` | integer | NOT NULL | enum: pending/confirmed/cancelled/refunded |
-| `payment_method` | string | | e.g. "Card", "Check" |
 | `promo_code` | string | | |
 | `promo_amount_cents` | integer | default: 0 | |
 | `helloasso_raw` | jsonb | | raw API response for debugging |
@@ -243,11 +240,10 @@ One record per participant per edition. Corresponds to one HelloAsso ticket (bil
 | `person_id` | bigint | NOT NULL, FK | |
 | `edition_id` | bigint | NOT NULL, FK | |
 | `helloasso_ticket_id` | string | NOT NULL, UNIQUE | HelloAsso ticket ID |
-| `age_category` | integer | NOT NULL | enum (see business rules) |
+| `age_category` | integer | NOT NULL | enum: enfant/adulte |
 | `ticket_price_cents` | integer | NOT NULL, default: 0 | base ticket price |
 | `discount_cents` | integer | NOT NULL, default: 0 | promo/reduction applied |
-| `actual_price_cents` | integer | NOT NULL, default: 0 | ticket_price - discount |
-| `registration_week` | date | | the Monday of the registration week |
+| `has_conflict` | boolean | NOT NULL, default: false | true = overlapping workshop slots flagged for admin review |
 | `excluded_from_stats` | boolean | NOT NULL, default: false | manual exclusion from dashboards |
 | `is_unaccompanied_minor` | boolean | NOT NULL, default: false | |
 | `responsible_person_note` | text | | free text, e.g. "Responsabilité Elisabeth Lemmel" |
@@ -259,7 +255,7 @@ One record per participant per edition. Corresponds to one HelloAsso ticket (bil
 
 **Enums**:
 ```ruby
-enum :age_category, { petit: 0, enfant: 1, pre_ado: 2, ado: 3, adulte: 4 }
+enum :age_category, { enfant: 0, adulte: 1 }
 ```
 
 **Model notes**:
@@ -273,13 +269,18 @@ class Registration < ApplicationRecord
   has_many :registration_workshops, dependent: :destroy
   has_many :workshops, through: :registration_workshops
 
-  enum :age_category, { petit: 0, enfant: 1, pre_ado: 2, ado: 3, adulte: 4 }
+  enum :age_category, { enfant: 0, adulte: 1 }
 
   validates :helloasso_ticket_id, presence: true, uniqueness: true
   validates :age_category, presence: true
 
   scope :for_stats, -> { where(excluded_from_stats: false) }
   scope :unaccompanied_minors, -> { where(is_unaccompanied_minor: true) }
+  scope :with_conflicts, -> { where(has_conflict: true) }
+
+  def actual_price_cents
+    ticket_price_cents - discount_cents
+  end
 end
 ```
 
@@ -465,6 +466,23 @@ Migrations must be created in this order to respect foreign key dependencies:
 ---
 
 ## Notes on Design Decisions
+
+- **Two age categories only**: `enfant` and `adulte`. Psalmodia does not need sub-categories
+  (petit, pre_ado, ado). Simpler enum, simpler code, simpler UI.
+
+- **No `registration_week` column**: The week of registration can be computed from `order_date`
+  when needed. Storing it would be premature denormalisation.
+
+- **No `actual_price_cents` column**: Computed as `ticket_price_cents - discount_cents` via a
+  model method. The revenue query uses `sum("ticket_price_cents - discount_cents")` directly in
+  SQL. No need to store a value that is pure arithmetic of two other columns on the same row.
+
+- **No `base_price_cents` on workshops**: The actual price paid is stored on
+  `registration_workshops.price_paid_cents`. A separate "base price" was not asked for.
+
+- **`has_conflict` flag instead of hard block**: When a participant has overlapping workshop
+  slots, the registration is saved with `has_conflict: true` for admin review. The import/sync
+  never refuses data — it flags it.
 
 - **Person is not split into Participant/Instructor**: A single `people` table with no role column
   avoids duplication. The same person can attend as a participant in one edition and as staff in

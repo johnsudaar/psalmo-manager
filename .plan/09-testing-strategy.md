@@ -143,10 +143,9 @@ end
 FactoryBot.define do
   factory :workshop do
     association :edition
-    name              { Faker::Lorem.unique.word.upcase }
-    time_slot         { :matin }
-    base_price_cents  { 5000 }
-    capacity          { 20 }
+    name      { Faker::Lorem.unique.word.upcase }
+    time_slot { :matin }
+    capacity  { 20 }
   end
 end
 ```
@@ -188,7 +187,7 @@ FactoryBot.define do
     age_category         { :adulte }
     ticket_price_cents   { 10000 }
     discount_cents       { 0 }
-    actual_price_cents   { 10000 }
+    has_conflict         { false }
   end
 end
 ```

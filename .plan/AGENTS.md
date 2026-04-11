@@ -102,6 +102,9 @@ See `.plan/01-project-overview.md` for the full context.
   portal, no public-facing page. Devise protects all routes.
 - **Multi-edition**: Every aggregate query must be scoped to an `edition`. Never query across
   all editions without an explicit intent.
+- **KISS**: Do not add complexity that has not been explicitly asked for. No extra columns,
+  validations, abstractions, or features beyond what is specified. When in doubt, do less.
+  See `01-project-overview.md#constraints` for the full statement.
 - **Actor pattern**: Controllers call one actor per write action. Never call model `.update` or
   `.create` directly from a controller. See `11-actors.md` and `02-technical-stack.md`.
 - **Auto-save**: Financial fields on staff profiles, registration override fields, and edition

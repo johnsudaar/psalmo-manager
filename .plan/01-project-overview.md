@@ -118,6 +118,10 @@ See `.plan/04-helloasso-integration.md` and `.plan/05-data-sources.md` for detai
 
 ## Constraints
 
+- **KISS (Keep It Simple)**: Do not add complexity that has not been explicitly asked for.
+  Before adding a feature, a column, a validation, or a layer of abstraction, ask: "was this
+  requested?". If the answer is no, leave it out. Simple beats clever. A flat boolean beats an
+  enum. A computed value beats a stored one. A warning beats a hard block.
 - **French law**: The association is a French "loi 1901" non-profit. Travel reimbursement rates
   follow French fiscal guidelines (configurable per edition).
 - **HelloAsso**: The API is rate-limited. Webhooks require a publicly accessible endpoint.

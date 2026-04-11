@@ -65,10 +65,11 @@ Styled banner at the top of the content area:
 
 **Content blocks on the dashboard**:
 - Revenue summary card: total billetterie, total ateliers, nombre de participants
+- Participant counts by age category (enfant / adulte) — two numbers, no chart needed
 - Workshop fill rate table: each workshop with capacity bar + %
-- Age distribution bar chart (Chartkick)
 - Weekly registration cadence line chart (Chartkick + Groupdate)
-- Quick links: last 5 registrations, participants flagged as unaccompanied minors
+- Quick links: last 5 registrations, participants flagged as unaccompanied minors,
+  registrations with slot conflicts
 
 ---
 
@@ -97,10 +98,11 @@ No deletion (historical data must be preserved).
 
 **Index filters** (form submitted via GET, no JS required):
 - Search by name or email (ILIKE)
-- Filter by age category
+- Filter by age category (enfant / adulte)
 - Filter by workshop (join on registration_workshops)
 - Filter by time slot
 - Toggle: show only unaccompanied minors
+- Toggle: show only registrations with slot conflicts (`has_conflict: true`)
 - Toggle: exclude from stats
 
 **Show page sections**:

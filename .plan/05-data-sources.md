@@ -58,10 +58,9 @@ This tab is a raw HelloAsso export. Each row = one ticket (billet). Key columns:
 `MARMITONS`, etc. Each contains either a price (e.g. `"50"`) or empty/`"0"` if not enrolled.
 There are up to ~35 such columns.
 
-**Derived columns in DONNES_BRUTES_FILTREES** (safe to use during import):
-- `Inscription Semaine` — the Monday date of the registration week (format: DD/MM/YYYY)
+**Derived columns in DONNES_BRUTES_FILTREES** (can be ignored — the app recomputes what it needs):
 - `Age` — integer age at time of camp
-- `Age 10aine` — age bracket string (e.g. "0-10", "10-20")
+- `Age 10aine` — age bracket string (not used; app uses enfant/adulte only)
 
 ---
 
@@ -73,12 +72,9 @@ The raw export has one column per workshop. The importer must:
    detecting non-standard column headers).
 2. For each row, iterate over workshop columns.
 3. If a column value is non-empty and non-zero, create a `registration_workshop` record:
-   - `workshop_id` — find or create `Workshop` by `(edition_id, name)`
-   - `price_paid_cents` — parse the column value × 100
-   - `is_override` — false (raw data, not a manual override)
-
-**Time slot inference**: Look up the workshop's `time_slot` from the `FIltres` tab or from a
-hardcoded mapping of workshop names. If unknown, default to `journee` and flag for manual review.
+    - `workshop_id` — find or create `Workshop` by `(edition_id, name)`
+    - `price_paid_cents` — parse the column value × 100
+    - `is_override` — false (raw data, not a manual override)
 
 ---
 
@@ -312,7 +308,9 @@ https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&gid={GID}
   convert commas to dots before parsing.
 - **Encoding**: Sheets exports are UTF-8 but may contain BOM — use `encoding: "bom|utf-8"` in
   `CSV.foreach`.
-- **Empty rows**: Skip rows where the ticket number column is blank.
+- **Missing date_of_birth**: Default `age_category` to `:enfant` (not `:adulte`). Psalmodia's
+  participants are predominantly children; an unknown age is safer treated as a child for pricing
+  and safeguarding purposes. Flag the registration in the import log for manual review.
 - **Duplicate orders**: Multiple rows with the same `Référence commande` → same `Order` record,
   multiple `Registration` records.
 - **Workshop column names**: May have accents, spaces, special characters. Normalise by
