@@ -15,5 +15,44 @@ services:
     ports:
       - "6379:6379"
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec rails server -b 0.0.0.0
+    user: "1000:1000"
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://psalmo:psalmo@postgres:5432/psalmo_manager_development
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: development
+      SECRET_KEY_BASE: dev_secret_key_base_not_used_in_production
+    depends_on:
+      - postgres
+      - redis
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec sidekiq
+    user: "1000:1000"
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    environment:
+      DATABASE_URL: postgresql://psalmo:psalmo@postgres:5432/psalmo_manager_development
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: development
+      SECRET_KEY_BASE: dev_secret_key_base_not_used_in_production
+    depends_on:
+      - postgres
+      - redis
+
 volumes:
   postgres_data:
+  bundle_cache:
