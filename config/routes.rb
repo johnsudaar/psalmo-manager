@@ -16,4 +16,31 @@ Rails.application.routes.draw do
   end
 
   root to: "dashboard#index"
+
+  resources :editions, only: [ :index, :new, :create, :edit, :update ]
+
+  resources :workshops, only: [ :index, :new, :create, :show, :edit, :update, :destroy ]
+
+  resources :participants, only: [ :index, :show ]
+
+  resources :orders, only: [ :index, :show ]
+
+  resources :staff_profiles do
+    member do
+      get :fiche
+    end
+    resources :staff_advances, only: [ :create, :destroy ]
+    resources :staff_payments, only: [ :create, :destroy ]
+  end
+
+  resources :workshop_substitutions, only: [ :index, :new, :create ]
+
+  scope :exports, as: :export, controller: :exports do
+    get "/", action: :index, as: ""
+    get "participants", action: :participants, as: :participants
+    get "workshop-roster", action: :workshop_roster_csv, as: :workshop_roster_csv
+    get "staff-summary", action: :staff_summary, as: :staff_summary
+    get "financial-report", action: :financial_report, as: :financial_report
+    get "orders-csv", action: :orders_csv, as: :orders_csv
+  end
 end

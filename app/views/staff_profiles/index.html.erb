@@ -1,0 +1,50 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Staff — <%= current_edition.name %></h1>
+  <%= link_to "Nouvelle fiche", new_staff_profile_path,
+        class: "bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700" %>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Dossier #</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Nom</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Transport</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">KM</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Indemnité</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Solde</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      <% @staff_profiles.each_with_index do |sp, i| %>
+        <% balance = sp.balance_cents %>
+        <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
+          <td class="px-6 py-4 text-sm text-gray-700"><%= sp.dossier_number %></td>
+          <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= sp.person.full_name %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= sp.transport_mode.presence || "—" %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= sp.km_traveled || 0 %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= format_euros(sp.allowance_cents) %></td>
+          <td class="px-6 py-4 text-sm font-medium <%= sp.psalmodia_owes? ? 'text-green-600' : sp.instructor_owes? ? 'text-red-600' : 'text-gray-700' %>">
+            <%= format_euros(balance.abs) %>
+            <% if sp.psalmodia_owes? %>
+              <span class="text-xs font-normal text-gray-500 ml-1">(dû à l'animateur)</span>
+            <% elsif sp.instructor_owes? %>
+              <span class="text-xs font-normal text-gray-500 ml-1">(dû à Psalmodia)</span>
+            <% end %>
+          </td>
+          <td class="px-6 py-4 text-sm">
+            <%= link_to "Voir", staff_profile_path(sp),
+                  class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @staff_profiles.empty? %>
+        <tr>
+          <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">Aucune fiche staff pour cette édition.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

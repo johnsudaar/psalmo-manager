@@ -1,0 +1,55 @@
+<% time_slot_labels = { "matin" => "Matin", "apres_midi" => "Après-midi", "journee" => "Journée" } %>
+<% person = @registration.person %>
+<% current_workshops = @registration.registration_workshops.includes(:workshop) %>
+
+<div class="max-w-2xl">
+  <div class="flex items-center gap-4 mb-6">
+    <%= link_to "← Retour", workshop_substitutions_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+    <h1 class="text-2xl font-semibold text-gray-900">Changer les ateliers — <%= person.full_name %></h1>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Ateliers actuels</h2>
+    <% if current_workshops.any? %>
+      <ul class="space-y-1">
+        <% current_workshops.each do |rw| %>
+          <li class="text-sm text-gray-700">
+            <span class="font-medium"><%= time_slot_labels[rw.workshop.time_slot] %></span>
+            — <%= rw.workshop.name %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-gray-500">Aucun atelier actuellement.</p>
+    <% end %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Changer un atelier</h2>
+
+    <% current_workshops.each do |rw| %>
+      <% slot = rw.workshop.time_slot %>
+      <% available = @workshops.select { |w| w.time_slot == slot } %>
+      <div class="mb-6">
+        <p class="text-sm font-medium text-gray-700 mb-2">
+          Créneau : <%= time_slot_labels[slot] %> (actuellement : <%= rw.workshop.name %>)
+        </p>
+        <%= form_with url: workshop_substitutions_path, method: :post do |f| %>
+          <%= f.hidden_field :registration_id, value: @registration.id %>
+          <div class="flex gap-3 items-center">
+            <%= f.select :new_workshop_id,
+                  available.map { |w| ["#{w.name}#{w.full? ? ' (complet)' : ''}", w.id] },
+                  { selected: rw.workshop_id },
+                  class: "border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 flex-1" %>
+            <%= f.submit "Appliquer",
+                  class: "bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 cursor-pointer" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if current_workshops.empty? %>
+      <p class="text-sm text-gray-500">Aucun créneau à modifier.</p>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,52 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Exports</h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-200">
+
+  <div class="px-6 py-4 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium text-gray-900">Liste des participants</p>
+      <p class="text-xs text-gray-500 mt-0.5">Tous les participants de l'édition courante au format CSV</p>
+    </div>
+    <%= link_to "Exporter (Phase 8)", participants_export_path,
+          class: "bg-white text-gray-400 border border-gray-200 px-4 py-2 rounded text-sm cursor-not-allowed" %>
+  </div>
+
+  <div class="px-6 py-4 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium text-gray-900">Listes par atelier</p>
+      <p class="text-xs text-gray-500 mt-0.5">Feuilles de présence par atelier au format CSV</p>
+    </div>
+    <%= link_to "Exporter (Phase 8)", workshop_roster_csv_export_path,
+          class: "bg-white text-gray-400 border border-gray-200 px-4 py-2 rounded text-sm cursor-not-allowed" %>
+  </div>
+
+  <div class="px-6 py-4 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium text-gray-900">Récapitulatif staff</p>
+      <p class="text-xs text-gray-500 mt-0.5">Tableau de synthèse des fiches staff au format CSV</p>
+    </div>
+    <%= link_to "Exporter (Phase 8)", staff_summary_export_path,
+          class: "bg-white text-gray-400 border border-gray-200 px-4 py-2 rounded text-sm cursor-not-allowed" %>
+  </div>
+
+  <div class="px-6 py-4 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium text-gray-900">Rapport financier</p>
+      <p class="text-xs text-gray-500 mt-0.5">Résumé financier de l'édition au format CSV</p>
+    </div>
+    <%= link_to "Exporter (Phase 8)", financial_report_export_path,
+          class: "bg-white text-gray-400 border border-gray-200 px-4 py-2 rounded text-sm cursor-not-allowed" %>
+  </div>
+
+  <div class="px-6 py-4 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium text-gray-900">Commandes CSV</p>
+      <p class="text-xs text-gray-500 mt-0.5">Export des commandes HelloAsso au format CSV</p>
+    </div>
+    <%= link_to "Exporter (Phase 8)", orders_csv_export_path,
+          class: "bg-white text-gray-400 border border-gray-200 px-4 py-2 rounded text-sm cursor-not-allowed" %>
+  </div>
+
+</div>

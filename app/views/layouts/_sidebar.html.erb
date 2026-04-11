@@ -18,23 +18,23 @@
           class: "block px-3 py-2 rounded text-sm font-medium #{current_page?(root_path) ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}" %>
 
     <div class="pt-3 pb-1 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inscriptions</div>
-    <%= link_to "Participants", "#",
+    <%= link_to "Participants", participants_path,
           class: "block px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50" %>
-    <%= link_to "Commandes", "#",
+    <%= link_to "Commandes", orders_path,
           class: "block px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50" %>
-    <%= link_to "Ateliers", "#",
+    <%= link_to "Ateliers", workshops_path,
           class: "block px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50" %>
-    <%= link_to "Changements", "#",
+    <%= link_to "Changements", workshop_substitutions_path,
           class: "block px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50" %>
 
     <div class="pt-3 pb-1 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Staff</div>
-    <%= link_to "Fiches staff", "#",
+    <%= link_to "Fiches staff", staff_profiles_path,
           class: "block px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50" %>
 
     <div class="pt-3 pb-1 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Outils</div>
-    <%= link_to "Exports", "#",
+    <%= link_to "Exports", export_path,
           class: "block px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50" %>
-    <%= link_to "Paramètres", "#",
+    <%= link_to "Paramètres", editions_path,
           class: "block px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-50" %>
   </div>
 

@@ -1,0 +1,251 @@
+<% autosave_url = staff_profile_path(@staff_profile) %>
+
+<div class="flex items-center justify-between mb-6">
+  <div class="flex items-center gap-4">
+    <%= link_to "← Staff", staff_profiles_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+    <h1 class="text-2xl font-semibold text-gray-900">
+      Dossier #<%= @staff_profile.dossier_number %> — <%= @staff_profile.person.full_name %>
+    </h1>
+  </div>
+  <div class="flex gap-3">
+    <%= link_to "Générer la fiche PDF", fiche_staff_profile_path(@staff_profile),
+          class: "bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-50" %>
+  </div>
+</div>
+
+<p class="text-sm text-gray-500 mb-6">(Sauvegarde automatique)</p>
+
+<div class="grid grid-cols-1 gap-6">
+
+  <%# === Section 1: Informations générales === %>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Informations générales</h2>
+    <div class="grid grid-cols-2 gap-4">
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Mode de transport</label>
+        <input type="text"
+               name="staff_profile[transport_mode]"
+               value="<%= @staff_profile.transport_mode %>"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[transport_mode]">
+        <div id="field_error_transport_mode" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Kilomètres parcourus</label>
+        <input type="number"
+               name="staff_profile[km_traveled]"
+               value="<%= @staff_profile.km_traveled %>"
+               min="0"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[km_traveled]">
+        <div id="field_error_km_traveled" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Taux km (centimes/km)
+          <span class="text-xs text-gray-400 ml-1">par défaut: <%= @staff_profile.edition.km_rate_cents %> c/km</span>
+        </label>
+        <input type="number"
+               name="staff_profile[km_rate_override_cents]"
+               value="<%= @staff_profile.km_rate_override_cents %>"
+               placeholder="<%= @staff_profile.edition.km_rate_cents %>"
+               min="0"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[km_rate_override_cents]">
+        <div id="field_error_km_rate_override_cents" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Indemnité (centimes)</label>
+        <input type="number"
+               name="staff_profile[allowance_cents]"
+               value="<%= @staff_profile.allowance_cents %>"
+               min="0"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[allowance_cents]">
+        <div id="field_error_allowance_cents" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Libellé indemnité</label>
+        <input type="text"
+               name="staff_profile[allowance_label]"
+               value="<%= @staff_profile.allowance_label %>"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[allowance_label]">
+        <div id="field_error_allowance_label" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fournitures (centimes)</label>
+        <input type="number"
+               name="staff_profile[supplies_cost_cents]"
+               value="<%= @staff_profile.supplies_cost_cents %>"
+               min="0"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[supplies_cost_cents]">
+        <div id="field_error_supplies_cost_cents" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <%# === Section 2: Prise en charge Psalmodia === %>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Prise en charge Psalmodia</h2>
+    <div class="grid grid-cols-3 gap-4">
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Hébergement (centimes)</label>
+        <input type="number"
+               name="staff_profile[accommodation_cost_cents]"
+               value="<%= @staff_profile.accommodation_cost_cents %>"
+               min="0"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[accommodation_cost_cents]">
+        <div id="field_error_accommodation_cost_cents" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Repas (centimes)</label>
+        <input type="number"
+               name="staff_profile[meals_cost_cents]"
+               value="<%= @staff_profile.meals_cost_cents %>"
+               min="0"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[meals_cost_cents]">
+        <div id="field_error_meals_cost_cents" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Billets (centimes)</label>
+        <input type="number"
+               name="staff_profile[tickets_cost_cents]"
+               value="<%= @staff_profile.tickets_cost_cents %>"
+               min="0"
+               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               data-controller="autosave"
+               data-action="blur->autosave#save"
+               data-autosave-url-value="<%= autosave_url %>"
+               data-autosave-param-value="staff_profile[tickets_cost_cents]">
+        <div id="field_error_tickets_cost_cents" class="text-red-600 text-sm mt-1"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <%# === Section 3: Membres (non pris en charge / pris en charge) === %>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Membres accompagnants</h2>
+    <div class="grid grid-cols-2 gap-6">
+
+      <div>
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Non pris en charge</p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Hébergement (centimes)</label>
+            <input type="number"
+                   name="staff_profile[member_uncovered_accommodation_cents]"
+                   value="<%= @staff_profile.member_uncovered_accommodation_cents %>"
+                   min="0"
+                   class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                   data-controller="autosave"
+                   data-action="blur->autosave#save"
+                   data-autosave-url-value="<%= autosave_url %>"
+                   data-autosave-param-value="staff_profile[member_uncovered_accommodation_cents]">
+            <div id="field_error_member_uncovered_accommodation_cents" class="text-red-600 text-sm mt-1"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Repas (centimes)</label>
+            <input type="number"
+                   name="staff_profile[member_uncovered_meals_cents]"
+                   value="<%= @staff_profile.member_uncovered_meals_cents %>"
+                   min="0"
+                   class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                   data-controller="autosave"
+                   data-action="blur->autosave#save"
+                   data-autosave-url-value="<%= autosave_url %>"
+                   data-autosave-param-value="staff_profile[member_uncovered_meals_cents]">
+            <div id="field_error_member_uncovered_meals_cents" class="text-red-600 text-sm mt-1"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Billets (centimes)</label>
+            <input type="number"
+                   name="staff_profile[member_uncovered_tickets_cents]"
+                   value="<%= @staff_profile.member_uncovered_tickets_cents %>"
+                   min="0"
+                   class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                   data-controller="autosave"
+                   data-action="blur->autosave#save"
+                   data-autosave-url-value="<%= autosave_url %>"
+                   data-autosave-param-value="staff_profile[member_uncovered_tickets_cents]">
+            <div id="field_error_member_uncovered_tickets_cents" class="text-red-600 text-sm mt-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Pris en charge</p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Billets (centimes)</label>
+            <input type="number"
+                   name="staff_profile[member_covered_tickets_cents]"
+                   value="<%= @staff_profile.member_covered_tickets_cents %>"
+                   min="0"
+                   class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                   data-controller="autosave"
+                   data-action="blur->autosave#save"
+                   data-autosave-url-value="<%= autosave_url %>"
+                   data-autosave-param-value="staff_profile[member_covered_tickets_cents]">
+            <div id="field_error_member_covered_tickets_cents" class="text-red-600 text-sm mt-1"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <%# === Section 4: Résumé financier (Turbo Frame) === %>
+  <%= turbo_frame_tag "financial_summary" do %>
+    <%= render "staff_profiles/financial_summary", staff_profile: @staff_profile %>
+  <% end %>
+
+  <%# === Section 5: Acomptes (Turbo Frame) === %>
+  <%= turbo_frame_tag "staff_advances" do %>
+    <%= render "staff_profiles/staff_advances", staff_profile: @staff_profile %>
+  <% end %>
+
+  <%# === Section 6: Versements (Turbo Frame) === %>
+  <%= turbo_frame_tag "staff_payments" do %>
+    <%= render "staff_profiles/staff_payments", staff_profile: @staff_profile %>
+  <% end %>
+
+</div>
