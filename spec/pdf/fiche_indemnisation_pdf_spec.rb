@@ -55,6 +55,10 @@ RSpec.describe FicheIndemnisationPdf do
     expect(pdf_text).to include("Cachet")
   end
 
+  it "includes the indemnities label" do
+    expect(pdf_text).to include("Indemnités")
+  end
+
   it "includes the default travel label" do
     expect(pdf_text).to include("Frais de déplacement")
   end

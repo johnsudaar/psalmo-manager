@@ -30,7 +30,7 @@ class StaffProfile < ApplicationRecord
   end
 
   def effective_allowance_label
-    allowance_label.presence || edition.allowance_label_options.first
+    allowance_label.presence || edition.allowance_label_options.first || "Frais atelier"
   end
 
   def effective_km_rate_cents

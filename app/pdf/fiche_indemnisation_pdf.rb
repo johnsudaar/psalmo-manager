@@ -77,7 +77,7 @@ class FicheIndemnisationPdf
   def section_frais_animateur
     section_header "RÉCAPITULATIF DES FRAIS DU/DES ANIMATEUR(S)"
 
-    two_col_row @sp.effective_allowance_label, @sp.allowance_cents
+    two_col_row "Indemnités", @sp.allowance_cents
     if @sp.km_traveled&.positive?
       rate = @sp.effective_km_rate_cents
       rate_label = @sp.km_rate_override_cents ? "(taux personnalisé)" : ""
@@ -92,7 +92,7 @@ class FicheIndemnisationPdf
     else
       two_col_row "Frais de déplacement", @sp.travel_allowance_cents
     end
-    two_col_row "Frais fournitures atelier", @sp.supplies_cost_cents
+    two_col_row @sp.effective_allowance_label, @sp.supplies_cost_cents
     move_down 2
     two_col_row "Total frais à payer à animateur(s)", @sp.total_to_pay_instructor_cents, bold: true
   end
