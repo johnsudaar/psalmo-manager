@@ -92,11 +92,11 @@ RSpec.describe StaffProfile, type: :model do
       expect(profile.balance_cents).to eq(balance_before - 5000)
     end
 
-    it "decreases when an advance is recorded" do
+    it "increases when an advance is recorded" do
       profile.save!
       balance_before = profile.balance_cents
       create(:staff_advance, staff_profile: profile, amount_cents: 1000)
-      expect(profile.balance_cents).to eq(balance_before - 1000)
+      expect(profile.balance_cents).to eq(balance_before + 1000)
     end
   end
 

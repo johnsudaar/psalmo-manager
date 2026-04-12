@@ -77,7 +77,7 @@ class StaffProfile < ApplicationRecord
   end
 
   def balance_cents
-    amount_owed_to_instructor_cents - total_advances_cents - total_payments_cents
+    amount_owed_to_instructor_cents + total_advances_cents - total_payments_cents
   end
 
   def psalmodia_owes?
