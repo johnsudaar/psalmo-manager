@@ -57,9 +57,9 @@ class DashboardStats
 
   # Weekly registration cadence — returns hash { week_start_date => count }
   def weekly_cadence
-    @edition.orders
-      .joins(:registrations)
-      .merge(stats_registrations)
+    stats_registrations
+      .joins(:order)
+      .where.not(orders: { order_date: nil })
       .group_by_week("orders.order_date", format: "%Y-%m-%d")
       .count
   end
