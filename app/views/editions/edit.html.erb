@@ -125,6 +125,26 @@
           <div id="field_error_allowance_labels" class="text-red-600 text-sm mt-1"></div>
         </div>
 
+        <div>
+          <%= f.label :logo, "Logo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <% if @edition.logo.attached? %>
+            <div class="mb-3 rounded border border-gray-200 bg-gray-50 p-3">
+              <p class="text-sm text-gray-500 mb-2"><%= @edition.logo.filename.to_s %></p>
+              <%= image_tag rails_blob_path(@edition.logo, disposition: "inline"),
+                    alt: "Logo de l'édition",
+                    class: "max-h-24 w-auto" %>
+            </div>
+          <% end %>
+          <%= f.file_field :logo,
+                class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                accept: "image/png,image/jpeg,image/webp",
+                data: {
+                  controller: "file-submit",
+                  action: "change->file-submit#submit"
+                } %>
+          <div id="field_error_logo" class="text-red-600 text-sm mt-1"></div>
+        </div>
+
 
       </div>
     <% end %>

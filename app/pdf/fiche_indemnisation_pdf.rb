@@ -13,7 +13,7 @@ class FicheIndemnisationPdf
     @document = Prawn::Document.new(
       page_size:   "A4",
       page_layout: :portrait,
-      margin:      [ mm(20), mm(20), mm(20), mm(20) ]
+      margin:      [ mm(14), mm(20), mm(20), mm(20) ]
     )
     font "Helvetica"
     fill_color BLACK
@@ -54,11 +54,25 @@ class FicheIndemnisationPdf
   # ---------------------------------------------------------------
 
   def header
-    fill_color INDIGO
-    font_size(16) { text "PSALMODIA GAGNIÈRES", style: :bold }
-    fill_color BLACK
-    font_size(11) { text "Stage artistique d'été #{@edition.year}" }
-    move_down 6
+    if @edition.logo.attached?
+      begin
+        image StringIO.new(@edition.logo.download), fit: [ bounds.width, 72 ], position: :center
+        move_down 6
+      rescue StandardError
+        fill_color INDIGO
+        font_size(16) { text "PSALMODIA GAGNIÈRES", style: :bold, align: :center }
+        fill_color BLACK
+        font_size(11) { text @edition.name, align: :center }
+        move_down 6
+      end
+    else
+      fill_color INDIGO
+      font_size(16) { text "PSALMODIA GAGNIÈRES", style: :bold, align: :center }
+      fill_color BLACK
+      font_size(11) { text @edition.name, align: :center }
+      move_down 6
+    end
+
     fill_color INDIGO
     font_size(13) { text "FICHE D'INDEMNISATION ANIMATEUR(S)", style: :bold }
     fill_color BLACK
@@ -110,30 +124,28 @@ class FicheIndemnisationPdf
   def section_frais_membres
     section_header "MONTANT DES FRAIS DU/DES MEMBRE(S) DE LA FAMILLE"
 
-    fill_color GRAY
-    font_size(8) { text "Non pris en charge", style: :bold }
-    fill_color BLACK
+    subsection_title("A la charge de l'animateur")
     move_down 2
+    indent(8) do
+      two_col_row "Hébergement", @sp.member_uncovered_accommodation_cents
+      two_col_row "Repas", @sp.member_uncovered_meals_cents
+      two_col_row "Billet(s) et atelier(s)", @sp.member_uncovered_tickets_cents
+      move_down 2
+      two_col_row "Total des frais membre(s) à payer par animateur", @sp.total_member_uncovered_cents, bold: true
+    end
 
-    two_col_row "Hébergement(s) non pris en charge", @sp.member_uncovered_accommodation_cents
-    two_col_row "Repas non pris en charge", @sp.member_uncovered_meals_cents
-    two_col_row "Billet(s) et atelier(s) non pris en charge par Psalmodia", @sp.member_uncovered_tickets_cents
-    move_down 2
-    two_col_row "Total des frais membre(s) à payer par animateur", @sp.total_member_uncovered_cents, bold: true
+    move_down 10
 
-    move_down 4
-    fill_color GRAY
-    font_size(8) { text "Pris en charge Psalmodia", style: :bold }
-    fill_color BLACK
+    subsection_title("Pris en charge Psalmodia")
     move_down 2
-
-    two_col_row "Billet(s) et atelier(s) pris en charge par Psalmodia", @sp.member_covered_tickets_cents
-    move_down 2
-    two_col_row "Total des frais membres pris en charge Psalmodia", @sp.total_member_covered_cents, bold: true
+    indent(8) do
+      two_col_row "Billet(s) et atelier(s)", @sp.member_covered_tickets_cents
+      move_down 2
+      two_col_row "Total des frais membres pris en charge Psalmodia", @sp.total_member_covered_cents, bold: true
+    end
   end
 
   def section_montant_du
-    amount = format_euros(@sp.amount_owed_to_instructor_cents)
     bounding_box([ 0, cursor ], width: bounds.width, height: 28) do
       fill_color INDIGO_BG
       fill_rectangle [ 0, cursor ], bounds.width, 28
@@ -142,14 +154,15 @@ class FicheIndemnisationPdf
       stroke_bounds
       stroke_color BLACK
       fill_color BLACK
-      font_size(12) do
-        text_box "Montant dû à l'animateur :    #{amount}",
-                 at: [ 6, cursor - 6 ],
-                 style: :bold,
-                 width: bounds.width - 12
-      end
+      highlighted_amount_row "Montant dû à l'animateur", @sp.amount_owed_to_instructor_cents, y_offset: 6, font_style: :bold, text_color: INDIGO
     end
     move_down 4
+  end
+
+  def subsection_title(title)
+    fill_color GRAY
+    font_size(9) { text title, style: :bold, align: :center }
+    fill_color BLACK
   end
 
   def section_acomptes
@@ -192,15 +205,14 @@ class FicheIndemnisationPdf
     bounding_box([ 0, cursor ], width: bounds.width, height: 20) do
       fill_color bg
       fill_rectangle [ 0, cursor ], bounds.width, 20
-      fill_color balance > 0 ? INDIGO : BLACK
-      font_size(10) do
-        label = balance > 0 ? "Somme à payer à l'animateur :" : "Somme à payer à l'animateur :"
-        val   = balance > 0 ? format_euros(owed_to_instructor) : "—"
-        text_box "#{label}    #{val}",
-                 at: [ 6, cursor - 4 ],
-                 style: (balance > 0 ? :bold : :normal),
-                 width: bounds.width - 12
-      end
+      highlighted_amount_row(
+        "Somme à payer à l'animateur",
+        balance > 0 ? owed_to_instructor : nil,
+        y_offset: 4,
+        font_style: (balance > 0 ? :bold : :normal),
+        text_color: (balance > 0 ? INDIGO : BLACK),
+        font_size: 10
+      )
     end
     move_down 2
 
@@ -209,14 +221,14 @@ class FicheIndemnisationPdf
     bounding_box([ 0, cursor ], width: bounds.width, height: 20) do
       fill_color bg2
       fill_rectangle [ 0, cursor ], bounds.width, 20
-      fill_color balance < 0 ? "DC2626" : BLACK
-      font_size(10) do
-        val = balance < 0 ? format_euros(owed_to_psalmodia) : "—"
-        text_box "Somme à payer à Psalmodia :    #{val}",
-                 at: [ 6, cursor - 4 ],
-                 style: (balance < 0 ? :bold : :normal),
-                 width: bounds.width - 12
-      end
+      highlighted_amount_row(
+        "Somme à payer à Psalmodia",
+        balance < 0 ? owed_to_psalmodia : nil,
+        y_offset: 4,
+        font_style: (balance < 0 ? :bold : :normal),
+        text_color: (balance < 0 ? "DC2626" : BLACK),
+        font_size: 10
+      )
     end
 
     # Balance = 0 case: override with neutral display
@@ -275,6 +287,28 @@ class FicheIndemnisationPdf
         padding: [ 2, 2, 2, 2 ]
       }
     )
+  end
+
+  def highlighted_amount_row(label, amount_cents, y_offset:, font_style:, text_color:, font_size: 12)
+    amount_str = format_euros(amount_cents)
+    label_width = bounds.width - 92
+    amount_width = 80
+    fill_color text_color
+    font_size(font_size) do
+      text_box label,
+               at: [ 6, cursor - y_offset ],
+               style: font_style,
+               width: label_width,
+               overflow: :shrink_to_fit,
+               min_font_size: 8
+
+      text_box amount_str,
+               at: [ 6 + label_width, cursor - y_offset ],
+               style: font_style,
+               width: amount_width,
+               align: :right
+    end
+    fill_color BLACK
   end
 
   def advances_table(records)

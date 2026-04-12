@@ -25,9 +25,13 @@ class EditionsController < ApplicationController
   end
 
   def update
+    if edition_params[:logo].present?
+      @edition.logo.attach(edition_params[:logo])
+    end
+
     success = true
 
-    edition_params.to_h.each do |key, val|
+    edition_params.except(:logo).to_h.each do |key, val|
       result = Actors::UpdateEditionSettings.call(
         edition: @edition,
         field: key,
@@ -82,7 +86,8 @@ class EditionsController < ApplicationController
       :helloasso_form_slug,
       :km_rate_cents,
       :transport_modes,
-      :allowance_labels
+      :allowance_labels,
+      :logo
     )
   end
 end

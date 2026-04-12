@@ -51,4 +51,6 @@ Rails.application.configure do
 
   # Allow all hosts in test (request specs use www.example.com by default).
   config.hosts = nil
+
+  config.active_storage.service = :test
 end

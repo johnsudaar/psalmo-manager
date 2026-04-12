@@ -7,12 +7,18 @@ export default class extends Controller {
 
   save(event) {
     const field = event.target
-    const body  = new FormData()
     const csrfToken = document.querySelector("[name='csrf-token']")?.content
+    const body = field.type === "file" && field.form ? new FormData(field.form) : new FormData()
 
-    body.append("_method", "patch")
-    body.append(this.paramValue, field.type === "checkbox" ? field.checked : field.value)
-    if (csrfToken) body.append("authenticity_token", csrfToken)
+    if (!body.has("_method")) body.append("_method", "patch")
+
+    if (field.type === "file") {
+      if (field.files[0]) body.set(this.paramValue, field.files[0])
+    } else {
+      body.append(this.paramValue, field.type === "checkbox" ? field.checked : field.value)
+    }
+
+    if (csrfToken && !body.has("authenticity_token")) body.append("authenticity_token", csrfToken)
 
     fetch(this.urlValue, {
       method: "POST",

@@ -66,4 +66,5 @@ Rails.application.configure do
 
   # Use Sidekiq for background jobs
   config.active_job.queue_adapter = :sidekiq
+  config.active_storage.service = :local
 end

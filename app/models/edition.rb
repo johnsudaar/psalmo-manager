@@ -3,6 +3,7 @@ class Edition < ApplicationRecord
   DEFAULT_ALLOWANCE_LABELS = [ "Cachet", "Prestation", "Intervention", "Remboursement" ].freeze
 
   has_paper_trail skip: [ :updated_at ], skip_unchanged: true
+  has_one_attached :logo
 
   has_many :workshops, dependent: :destroy
   has_many :orders, dependent: :destroy
