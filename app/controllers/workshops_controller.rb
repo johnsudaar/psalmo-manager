@@ -1,5 +1,5 @@
 class WorkshopsController < ApplicationController
-  before_action :set_workshop, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_workshop, only: [ :show, :edit, :update, :destroy, :roster_pdf ]
 
   def index
     @workshops = current_edition.workshops.order(:time_slot, :name)
@@ -26,6 +26,19 @@ class WorkshopsController < ApplicationController
 
   def show
     @registrations = @workshop.registrations.includes(:person).order("people.last_name")
+  end
+
+  def roster_pdf
+    @workshop = current_edition.workshops
+      .includes(registrations: :person)
+      .find(params[:id])
+
+    pdf = WorkshopRosterPdf.new(@workshop).render
+
+    send_data pdf,
+              filename:    "liste_#{@workshop.name.parameterize}_#{current_edition.year}.pdf",
+              type:        "application/pdf",
+              disposition: "inline"
   end
 
   def edit

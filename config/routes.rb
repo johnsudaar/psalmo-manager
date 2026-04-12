@@ -19,7 +19,11 @@ Rails.application.routes.draw do
 
   resources :editions, only: [ :index, :new, :create, :edit, :update ]
 
-  resources :workshops, only: [ :index, :new, :create, :show, :edit, :update, :destroy ]
+  resources :workshops, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
+    member do
+      get :roster_pdf
+    end
+  end
 
   resources :participants, only: [ :index, :show ]
 

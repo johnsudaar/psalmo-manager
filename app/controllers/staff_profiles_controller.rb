@@ -1,5 +1,5 @@
 class StaffProfilesController < ApplicationController
-  before_action :set_staff_profile, only: [ :show, :edit, :update, :fiche ]
+  before_action :set_staff_profile, only: [ :show, :edit, :update ]
 
   def index
     @staff_profiles = current_edition.staff_profiles
@@ -81,7 +81,16 @@ class StaffProfilesController < ApplicationController
   end
 
   def fiche
-    redirect_to staff_profile_path(@staff_profile), alert: "PDF non disponible (Phase 8)."
+    @staff_profile = current_edition.staff_profiles
+      .includes(:person, :edition, :staff_advances, :staff_payments)
+      .find(params[:id])
+
+    pdf = FicheIndemnisationPdf.new(@staff_profile).render
+
+    send_data pdf,
+              filename:    "fiche_#{@staff_profile.dossier_number}_#{@staff_profile.person.last_name}.pdf",
+              type:        "application/pdf",
+              disposition: "inline"
   end
 
   private
