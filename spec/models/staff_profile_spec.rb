@@ -67,6 +67,14 @@ RSpec.describe StaffProfile, type: :model do
       profile.travel_override_cents = 4550
       expect(profile.travel_allowance_cents).to eq(4550)
     end
+
+    it "returns zero when km_traveled is nil" do
+      profile.km_traveled = nil
+      profile.km_rate_override_cents = nil
+      profile.edition.km_rate_cents = 33
+
+      expect(profile.travel_allowance_cents).to eq(0)
+    end
   end
 
   describe "#total_to_pay_instructor_cents" do

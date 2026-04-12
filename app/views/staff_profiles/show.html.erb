@@ -75,7 +75,7 @@
         <input type="text"
                name="staff_profile[travel_override_cents]"
                value="<%= decimal_euros(@staff_profile.travel_override_cents) %>"
-               placeholder="<%= decimal_euros(@staff_profile.km_traveled * @staff_profile.effective_km_rate_cents) %>"
+               placeholder="<%= decimal_euros((@staff_profile.km_traveled || 0) * @staff_profile.effective_km_rate_cents) %>"
                class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                inputmode="decimal"
                data-controller="autosave currency-input"

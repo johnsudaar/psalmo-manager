@@ -40,7 +40,7 @@ class StaffProfile < ApplicationRecord
   def travel_allowance_cents
     return travel_override_cents if travel_override_cents.present?
 
-    (km_traveled * effective_km_rate_cents).round
+    ((km_traveled || 0) * effective_km_rate_cents).round
   end
 
   def total_to_pay_instructor_cents
