@@ -62,6 +62,10 @@ RSpec.describe Helloasso::SyncService do
       expect { sync.call }.to change(RegistrationWorkshop, :count).by(2)
     end
 
+    it "does not create audit log entries during sync" do
+      expect { sync.call }.not_to change(PaperTrail::Version, :count)
+    end
+
     it "stores helloasso_raw on the order" do
       sync.call
       expect(Order.last.helloasso_raw).to be_a(Hash)

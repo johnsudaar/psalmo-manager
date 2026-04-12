@@ -40,6 +40,12 @@ RSpec.describe Importers::ParticipantsCsvImporter do
       expect { result }.to change(Order, :count).by(3) # CMD-001, CMD-002, CMD-003
     end
 
+    it "does not create audit log entries during import" do
+      edition
+
+      expect { result }.not_to change(PaperTrail::Version, :count)
+    end
+
     it "creates RegistrationWorkshop records for non-zero workshop columns" do
       result
       reg = Registration.find_by(helloasso_ticket_id: "BIL-001")

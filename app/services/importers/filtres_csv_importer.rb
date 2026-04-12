@@ -4,6 +4,8 @@ module Importers
   # Processes the "FIltres" tab export: ticket number + forced workshop assignments.
   # Creates or replaces registration_workshop records with is_override: true.
   class FiltresCsvImporter
+    include AuditSuppression
+
     # Column A is the ticket number; all other columns are workshop names.
     TICKET_COLUMN = "Numéro de billet"
 
@@ -16,10 +18,12 @@ module Importers
     end
 
     def call
-      CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
-        process_row(row)
-      rescue => e
-        @errors << "Row #{$.}: #{e.message}"
+      without_audit_log do
+        CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
+          process_row(row)
+        rescue => e
+          @errors << "Row #{$.}: #{e.message}"
+        end
       end
       { applied: @applied, errors: @errors }
     end

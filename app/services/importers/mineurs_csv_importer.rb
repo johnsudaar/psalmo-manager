@@ -8,6 +8,8 @@ module Importers
   #   - "Numéro de billet" (or first column)
   #   - "Note" or "Responsable" (or second column) — free text
   class MineursCsvImporter
+    include AuditSuppression
+
     NOTE_COLUMNS = %w[Note Responsable Commentaire].freeze
 
     def initialize(csv_path:, edition_id:)
@@ -19,10 +21,12 @@ module Importers
     end
 
     def call
-      CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
-        process_row(row)
-      rescue => e
-        @errors << "Row #{$.}: #{e.message}"
+      without_audit_log do
+        CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
+          process_row(row)
+        rescue => e
+          @errors << "Row #{$.}: #{e.message}"
+        end
       end
       { applied: @applied, errors: @errors }
     end

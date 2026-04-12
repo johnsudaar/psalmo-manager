@@ -6,6 +6,8 @@ module Importers
   #
   # Expected CSV format: single column "Numéro de billet" (or first column used as fallback).
   class ExclusionsCsvImporter
+    include AuditSuppression
+
     def initialize(csv_path:, edition_id:)
       @csv_path   = csv_path
       @edition_id = edition_id
@@ -15,10 +17,12 @@ module Importers
     end
 
     def call
-      CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
-        process_row(row)
-      rescue => e
-        @errors << "Row #{$.}: #{e.message}"
+      without_audit_log do
+        CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
+          process_row(row)
+        rescue => e
+          @errors << "Row #{$.}: #{e.message}"
+        end
       end
       { applied: @applied, errors: @errors }
     end

@@ -2,6 +2,8 @@ require "csv"
 
 module Importers
   class ParticipantsCsvImporter
+    include AuditSuppression
+
     # All non-workshop columns in the HelloAsso export format
     KNOWN_COLUMNS = %w[
       Référence\ commande
@@ -37,13 +39,15 @@ module Importers
     end
 
     def call
-      # HelloAsso exports can contain stray quotes in free-text fields, especially addresses.
-      CSV.foreach(@csv_path, **csv_options) do |row|
-        # Skip cancelled/pending orders
-        next if row["Statut de la commande"].to_s.strip != "Validé"
-        process_row(row)
-      rescue => e
-        @errors << "Row #{$.}: #{e.message}"
+      without_audit_log do
+        # HelloAsso exports can contain stray quotes in free-text fields, especially addresses.
+        CSV.foreach(@csv_path, **csv_options) do |row|
+          # Skip cancelled/pending orders
+          next if row["Statut de la commande"].to_s.strip != "Validé"
+          process_row(row)
+        rescue => e
+          @errors << "Row #{$.}: #{e.message}"
+        end
       end
       { created: @created, updated: @updated, errors: @errors }
     end

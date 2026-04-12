@@ -1,29 +1,35 @@
 module Helloasso
   class SyncService
+    include AuditSuppression
+
     def initialize(edition)
       @edition = edition
       @client  = Client.new
     end
 
     def call
-      page = 1
-      loop do
-        resp = @client.get(
-          "/v5/organizations/#{org_slug}/forms/Event/#{@edition.helloasso_form_slug}/orders",
-          pageIndex: page, pageSize: 50, withDetails: true
-        )
-        data = resp.body
-        data["data"].each { |order_data| process_order(order_data) }
-        break if page >= data.dig("pagination", "totalPages").to_i
-        page += 1
+      without_audit_log do
+        page = 1
+        loop do
+          resp = @client.get(
+            "/v5/organizations/#{org_slug}/forms/Event/#{@edition.helloasso_form_slug}/orders",
+            pageIndex: page, pageSize: 50, withDetails: true
+          )
+          data = resp.body
+          data["data"].each { |order_data| process_order(order_data) }
+          break if page >= data.dig("pagination", "totalPages").to_i
+          page += 1
+        end
       end
     end
 
     # Called directly by WebhookProcessor for single-order updates
     def process_order(data)
-      payer  = upsert_person(data["payer"])
-      order  = upsert_order(data, payer)
-      data["items"]&.each { |item_data| process_item(item_data, order) }
+      without_audit_log do
+        payer  = upsert_person(data["payer"])
+        order  = upsert_order(data, payer)
+        data["items"]&.each { |item_data| process_item(item_data, order) }
+      end
     end
 
     private

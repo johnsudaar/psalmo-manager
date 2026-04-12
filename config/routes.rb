@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   resources :orders, only: [ :index, :show ]
 
   resources :users, only: [ :index, :new, :create, :destroy ]
+  resources :audit_logs, only: [ :index ]
 
   resources :staff_profiles do
     member do
