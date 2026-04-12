@@ -25,12 +25,12 @@ class WorkshopsController < ApplicationController
   end
 
   def show
-    @registrations = @workshop.registrations.includes(:person).order("people.last_name")
+    @registrations = @workshop.registrations.includes(:person, order: :payer).order("people.last_name")
   end
 
   def roster_pdf
     @workshop = current_edition.workshops
-      .includes(registrations: :person)
+      .includes(registrations: [ :person, { order: :payer } ])
       .find(params[:id])
 
     pdf = WorkshopRosterPdf.new(@workshop).render

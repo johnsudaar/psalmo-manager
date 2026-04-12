@@ -68,6 +68,7 @@
       <tr>
         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Nom</th>
         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Catégorie</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Date de naissance</th>
         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Email</th>
         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Téléphone</th>
       </tr>
@@ -80,13 +81,14 @@
                   class: "text-indigo-600 hover:text-indigo-800" %>
           </td>
           <td class="px-6 py-4 text-sm text-gray-700 capitalize"><%= registration.age_category %></td>
-          <td class="px-6 py-4 text-sm text-gray-700"><%= registration.person.email %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= registration.person.date_of_birth&.strftime("%d/%m/%Y") || "—" %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= registration.person.email.presence || registration.order.payer&.email || "—" %></td>
           <td class="px-6 py-4 text-sm text-gray-700"><%= registration.person.phone %></td>
         </tr>
       <% end %>
       <% if @registrations.empty? %>
         <tr>
-          <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">Aucun participant inscrit.</td>
+          <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">Aucun participant inscrit.</td>
         </tr>
       <% end %>
     </tbody>
