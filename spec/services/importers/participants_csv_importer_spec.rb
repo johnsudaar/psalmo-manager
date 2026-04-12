@@ -76,6 +76,12 @@ RSpec.describe Importers::ParticipantsCsvImporter do
       expect(reg.discount_cents).to eq(1000)
     end
 
+    it "stores the tariff label from the Tarif column" do
+      result
+      reg = Registration.find_by(helloasso_ticket_id: "BIL-002")
+      expect(reg.tariff_label).to eq("Adulte (18 ans et plus)")
+    end
+
     it "stores promo_code and promo_amount on order" do
       result
       order = Order.find_by(helloasso_order_id: "CMD-002")

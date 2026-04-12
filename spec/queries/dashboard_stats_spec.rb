@@ -128,6 +128,63 @@ RSpec.describe DashboardStats do
     end
   end
 
+  describe "#participants_workshop_distribution" do
+    it "splits participants with and without workshops" do
+      with_workshop = make_registration
+      make_registration
+      create(:registration_workshop, registration: with_workshop, workshop: create(:workshop, edition: edition))
+
+      expect(stats.participants_workshop_distribution).to eq(
+        "Avec atelier" => 1,
+        "Sans atelier" => 1
+      )
+    end
+  end
+
+  describe "#revenue_distribution" do
+    it "returns billetterie and atelier totals" do
+      reg = make_registration(ticket_price_cents: 10000, discount_cents: 500)
+      create(:registration_workshop, registration: reg, workshop: create(:workshop, edition: edition), price_paid_cents: 3000)
+
+      expect(stats.revenue_distribution).to eq(
+        "Billetterie" => 9500,
+        "Ateliers" => 3000
+      )
+    end
+  end
+
+  describe "#registrations_by_tariff_label" do
+    it "counts registrations by tariff label" do
+      make_registration(tariff_label: "Adulte")
+      make_registration(tariff_label: "Adulte")
+      make_registration(tariff_label: "Enfant")
+
+      expect(stats.registrations_by_tariff_label).to eq(
+        "Adulte" => 2,
+        "Enfant" => 1
+      )
+    end
+  end
+
+  describe "#participants_by_age_decade" do
+    it "groups participants by age decade from date_of_birth" do
+      make_registration(person: create(:person, date_of_birth: Date.new(2015, 7, 1)))
+      make_registration(person: create(:person, date_of_birth: Date.new(2008, 7, 1)))
+      make_registration(person: create(:person, date_of_birth: Date.new(1985, 7, 1)))
+
+      expect(stats.participants_by_age_decade).to eq(
+        "10-19" => 2,
+        "40-49" => 1
+      )
+    end
+
+    it "uses an unknown bucket when date_of_birth is missing" do
+      make_registration(person: create(:person, date_of_birth: nil))
+
+      expect(stats.participants_by_age_decade).to eq("Âge inconnu" => 1)
+    end
+  end
+
   describe "#recent_registrations" do
     it "returns at most 5 registrations ordered by order_date desc" do
       6.times { |i| make_registration(order_date: i.days.ago) }

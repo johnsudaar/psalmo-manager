@@ -101,6 +101,80 @@
   <% end %>
 </div>
 
+<div class="grid grid-cols-2 gap-6 mb-6">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Répartition des participants</p>
+    <% if @stats.participants_workshop_distribution.values.sum.positive? %>
+      <%= pie_chart @stats.participants_workshop_distribution,
+            height: "260px",
+            donut: true,
+            colors: [ "#4f46e5", "#cbd5e1" ] %>
+      <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-gray-700">
+        <% [ ["Avec atelier", "#4f46e5"], ["Sans atelier", "#cbd5e1"] ].each do |label, color| %>
+          <div class="flex items-center justify-between rounded border border-gray-100 px-3 py-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-block h-3 w-3 rounded-full" style="background-color: <%= color %>"></span>
+              <span><%= label %></span>
+            </div>
+            <span class="font-semibold"><%= @stats.participants_workshop_distribution[label] %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-gray-400">Aucune donnée disponible.</p>
+    <% end %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Répartition des revenus</p>
+    <% if @stats.revenue_distribution.values.sum.positive? %>
+      <%= pie_chart @stats.revenue_distribution.transform_values { |cents| cents / 100.0 },
+            height: "260px",
+            donut: true,
+            colors: [ "#0f766e", "#f59e0b" ] %>
+      <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-gray-700">
+        <% [ ["Billetterie", "#0f766e"], ["Ateliers", "#f59e0b"] ].each do |label, color| %>
+          <div class="flex items-center justify-between rounded border border-gray-100 px-3 py-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-block h-3 w-3 rounded-full" style="background-color: <%= color %>"></span>
+              <span><%= label %></span>
+            </div>
+            <span class="font-semibold"><%= format_euros(@stats.revenue_distribution[label]) %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-gray-400">Aucune donnée disponible.</p>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-6 mb-6">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Inscriptions par type de billet</p>
+    <% if @stats.registrations_by_tariff_label.any? %>
+      <%= column_chart @stats.registrations_by_tariff_label,
+            height: "260px",
+            colors: [ "#6366f1" ],
+            library: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } %>
+    <% else %>
+      <p class="text-sm text-gray-400">Aucune donnée disponible.</p>
+    <% end %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Participants par tranche d'âge</p>
+    <% if @stats.participants_by_age_decade.any? %>
+      <%= column_chart @stats.participants_by_age_decade,
+            height: "260px",
+            colors: [ "#8b5cf6" ],
+            library: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } %>
+    <% else %>
+      <p class="text-sm text-gray-400">Aucune donnée disponible.</p>
+    <% end %>
+  </div>
+</div>
+
 <%# ===== Row 4: Workshop fill rates ===== %>
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
   <div class="px-6 py-4 border-b border-gray-200">

@@ -135,6 +135,7 @@ module Importers
       dob_str      = row["Date de naissance"].to_s.strip.presence
       dob          = dob_str ? parse_date(dob_str) : nil
       age_cat      = Registration.age_category_for(dob, @edition.start_date)
+      tariff_label = row["Tarif"].to_s.strip.presence
       ticket_price = parse_cents(row["Montant tarif"].to_s.strip)
       discount     = parse_cents(row["Montant code promo"].to_s.strip)
 
@@ -146,6 +147,7 @@ module Importers
       reg.person_id          = participant.id
       reg.edition_id         = @edition.id
       reg.age_category       = age_cat
+      reg.tariff_label       = tariff_label
       reg.ticket_price_cents = ticket_price
       reg.discount_cents     = discount
       reg.save!
