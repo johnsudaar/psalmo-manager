@@ -56,64 +56,64 @@
       <%= f.submit "Filtrer", class: "bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-50 cursor-pointer" %>
     </div>
   <% end %>
-<% end %>
-
-<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-  <table class="min-w-full divide-y divide-gray-200">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Nom</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Email</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Téléphone</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Naissance</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Catégorie</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Ateliers</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Flags</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200">
-      <% @people.each_with_index do |person, i| %>
-        <% registrations = person.registrations.select { |r| r.edition_id == current_edition.id } %>
-        <% workshops_list = registrations.flat_map { |r| r.workshops.map(&:name) }.uniq %>
-        <% has_conflict = registrations.any?(&:has_conflict) %>
-        <% is_minor = registrations.any?(&:is_unaccompanied_minor) %>
-        <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
-          <td class="px-6 py-4 text-sm font-medium text-gray-900">
-            <%= link_to person.full_name, participant_path(person),
-                  class: "text-indigo-600 hover:text-indigo-800" %>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-700"><%= person.email %></td>
-          <td class="px-6 py-4 text-sm text-gray-700"><%= person.phone %></td>
-          <td class="px-6 py-4 text-sm text-gray-700">
-            <%= person.date_of_birth&.strftime("%d/%m/%Y") || "—" %>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-700 capitalize">
-            <%= registrations.map(&:age_category).uniq.join(", ") %>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-700"><%= workshops_list.join(", ").presence || "—" %></td>
-          <td class="px-6 py-4 text-sm">
-            <div class="flex gap-1 flex-wrap">
-              <% if has_conflict %>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Conflit</span>
-              <% end %>
-              <% if is_minor %>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Mineur</span>
-              <% end %>
-            </div>
-          </td>
-        </tr>
-      <% end %>
-      <% if @people.empty? %>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
         <tr>
-          <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">Aucun participant trouvé.</td>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Nom</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Email</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Téléphone</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Naissance</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Catégorie</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Ateliers</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Flags</th>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
-</div>
-
-<% if @pagy.pages > 1 %>
-  <div class="mt-4 flex justify-center text-sm">
-    <%== pagy_nav(@pagy) %>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <% @people.each_with_index do |person, i| %>
+          <% registrations = person.registrations.select { |r| r.edition_id == current_edition.id } %>
+          <% workshops_list = registrations.flat_map { |r| r.workshops.map(&:name) }.uniq %>
+          <% has_conflict = registrations.any?(&:has_conflict) %>
+          <% is_minor = registrations.any?(&:is_unaccompanied_minor) %>
+          <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">
+              <%= link_to person.full_name, participant_path(person),
+                    class: "text-indigo-600 hover:text-indigo-800",
+                    data: { turbo_frame: "_top" } %>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700"><%= person.email %></td>
+            <td class="px-6 py-4 text-sm text-gray-700"><%= person.phone %></td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+              <%= person.date_of_birth&.strftime("%d/%m/%Y") || "—" %>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700 capitalize">
+              <%= registrations.map(&:age_category).uniq.join(", ") %>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700"><%= workshops_list.join(", ").presence || "—" %></td>
+            <td class="px-6 py-4 text-sm">
+              <div class="flex gap-1 flex-wrap">
+                <% if has_conflict %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Conflit</span>
+                <% end %>
+                <% if is_minor %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Mineur</span>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+        <% if @people.empty? %>
+          <tr>
+            <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">Aucun participant trouvé.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   </div>
+
+  <% if @pagy.pages > 1 %>
+    <div class="mt-4 flex justify-center text-sm">
+      <%== pagy_nav(@pagy) %>
+    </div>
+  <% end %>
 <% end %>

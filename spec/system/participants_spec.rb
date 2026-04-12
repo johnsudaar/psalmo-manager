@@ -81,6 +81,61 @@ RSpec.describe "Participants", type: :system do
       expect(page).to     have_text("Alice Martin")
       expect(page).not_to have_text("Bernard Leroy")
     end
+
+    it "filters participants by age category" do
+      alice_reg.update!(age_category: :enfant)
+
+      select "Enfant", from: "Catégorie"
+      click_button "Filtrer"
+
+      expect(page).to have_text("Alice Martin")
+      expect(page).not_to have_text("Bernard Leroy")
+    end
+
+    it "filters participants by workshop" do
+      cirque = create(:workshop, edition: edition, name: "CIRQUE", time_slot: :matin)
+      danse = create(:workshop, edition: edition, name: "DANSE", time_slot: :apres_midi)
+      create(:registration_workshop, registration: alice_reg, workshop: cirque)
+      create(:registration_workshop, registration: bob_reg, workshop: danse)
+
+      visit participants_path
+
+      select "CIRQUE", from: "Atelier"
+      click_button "Filtrer"
+
+      expect(page).to have_text("Alice Martin")
+      expect(page).not_to have_text("Bernard Leroy")
+    end
+
+    it "filters participants by unaccompanied minor flag" do
+      alice_reg.update!(is_unaccompanied_minor: true)
+
+      check "Mineurs non accompagnés"
+      click_button "Filtrer"
+
+      expect(page).to have_text("Alice Martin")
+      expect(page).not_to have_text("Bernard Leroy")
+    end
+
+    it "filters participants by conflict flag" do
+      bob_reg.update!(has_conflict: true)
+
+      check "Avec conflits"
+      click_button "Filtrer"
+
+      expect(page).to have_text("Bernard Leroy")
+      expect(page).not_to have_text("Alice Martin")
+    end
+
+    it "filters participants by excluded from stats flag" do
+      bob_reg.update!(excluded_from_stats: true)
+
+      check "Exclus des stats"
+      click_button "Filtrer"
+
+      expect(page).to have_text("Bernard Leroy")
+      expect(page).not_to have_text("Alice Martin")
+    end
   end
 
   # ---------------------------------------------------------------------------
