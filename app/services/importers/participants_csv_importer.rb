@@ -37,7 +37,8 @@ module Importers
     end
 
     def call
-      CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
+      # HelloAsso exports can contain stray quotes in free-text fields, especially addresses.
+      CSV.foreach(@csv_path, **csv_options) do |row|
         # Skip cancelled/pending orders
         next if row["Statut de la commande"].to_s.strip != "Validé"
         process_row(row)
@@ -48,6 +49,21 @@ module Importers
     end
 
     private
+
+    def csv_options
+      {
+        headers: true,
+        encoding: "bom|utf-8",
+        liberal_parsing: true,
+        col_sep: detected_col_sep
+      }
+    end
+
+    def detected_col_sep
+      header_line = File.open(@csv_path, "rb", &:gets).to_s.encode("UTF-8", invalid: :replace, undef: :replace)
+
+      header_line.count(";") > header_line.count(",") ? ";" : ","
+    end
 
     # Workshop columns: not in KNOWN_COLUMNS and not a "Montant X" companion
     def workshop_columns(headers)

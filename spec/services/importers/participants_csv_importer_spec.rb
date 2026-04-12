@@ -142,6 +142,36 @@ RSpec.describe Importers::ParticipantsCsvImporter do
         expect(Registration.find_by(helloasso_ticket_id: "BIL-VALID")).to be_present
       end
     end
+
+    context "when the CSV contains stray quotes in a text field" do
+      it "parses the file with liberal parsing" do
+        csv = Tempfile.new([ "helloasso-malformed", ".csv" ])
+        csv.write("Référence commande,Date de la commande,Statut de la commande,Nom participant,Prénom participant,Nom payeur,Prénom payeur,Email payeur,Raison sociale,Moyen de paiement,Billet,Numéro de billet,Tarif,Montant tarif,Code Promo,Montant code promo,CIRQUE,Montant CIRQUE,THÉATRE ENFANTS,Montant THÉATRE ENFANTS,MARMITONS,Montant MARMITONS,Date de naissance,Adresse postale complète (rue, ville, pays),N° de téléphone\n")
+        csv.write("CMD-QUOTE,10/06/2026 10:00,Validé,Testquote,Alice,Testquote,Bob,bob.quote@example.test,,Carte bancaire,Voir le billet - PDF,BIL-QUOTE,Enfant (6-10 ans),80.00,,,Oui,50.00,,,Oui,30.00,15/08/2015,1 rue \"Fictive\" 75001 Paris,0600000001\n")
+        csv.close
+
+        result = described_class.new(csv_path: csv.path, edition_id: edition.id).call
+        csv.unlink
+
+        expect(result[:errors]).to be_empty
+        expect(Registration.find_by(helloasso_ticket_id: "BIL-QUOTE")).to be_present
+      end
+    end
+
+    context "when the HelloAsso CSV uses semicolons" do
+      it "detects the separator automatically" do
+        csv = Tempfile.new([ "helloasso-semicolon", ".csv" ])
+        csv.write("Référence commande;Date de la commande;Statut de la commande;Nom participant;Prénom participant;Nom payeur;Prénom payeur;Email payeur;Raison sociale;Moyen de paiement;Billet;Numéro de billet;Tarif;Montant tarif;Code Promo;Montant code promo;CIRQUE;Montant CIRQUE;Date de naissance;Adresse postale complète (rue, ville, pays);N° de téléphone\n")
+        csv.write("CMD-SEMI;10/06/2026 10:00;Validé;Testsemi;Alice;Testsemi;Bob;bob.semi@example.test;;Carte bancaire;Voir le billet - PDF;BIL-SEMI;Enfant (6-10 ans);80,00;;;Oui;50,00;15/08/2015;1 rue \"Fictive\" 75001 Paris;0600000001\n")
+        csv.close
+
+        result = described_class.new(csv_path: csv.path, edition_id: edition.id).call
+        csv.unlink
+
+        expect(result[:errors]).to be_empty
+        expect(Registration.find_by(helloasso_ticket_id: "BIL-SEMI")).to be_present
+      end
+    end
   end
 end
 

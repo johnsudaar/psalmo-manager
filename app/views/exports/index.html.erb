@@ -1,8 +1,22 @@
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-semibold text-gray-900">Exports</h1>
+  <h1 class="text-2xl font-semibold text-gray-900">Import / Export</h1>
 </div>
 
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-200">
+
+  <div class="px-6 py-4 flex items-center justify-between gap-6">
+    <div>
+      <p class="text-sm font-medium text-gray-900">Import HelloAsso DONNEES_BRUTES</p>
+      <p class="text-xs text-gray-500 mt-0.5">Importe le CSV brut HelloAsso pour creer ou mettre a jour les inscriptions de l'edition courante</p>
+    </div>
+    <%= form_with url: export_import_helloasso_csv_path, method: :post, multipart: true, class: "flex items-center gap-3" do |f| %>
+      <%= f.file_field :csv_file,
+            accept: ".csv,text/csv",
+            class: "block text-sm text-gray-700 file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200" %>
+      <%= f.submit "Importer CSV",
+            class: "bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition-colors cursor-pointer" %>
+    <% end %>
+  </div>
 
   <div class="px-6 py-4 flex items-center justify-between">
     <div>

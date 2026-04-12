@@ -41,6 +41,7 @@ Rails.application.routes.draw do
 
   scope :exports, as: :export, controller: :exports do
     get "/", action: :index, as: ""
+    post "import-helloasso-csv", action: :import_helloasso_csv, as: :import_helloasso_csv
     get "participants", action: :participants, as: :participants
     get "workshop-roster", action: :workshop_roster_csv, as: :workshop_roster_csv
     get "staff-summary", action: :staff_summary, as: :staff_summary

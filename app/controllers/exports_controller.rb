@@ -4,6 +4,30 @@ class ExportsController < ApplicationController
   def index
   end
 
+  def import_helloasso_csv
+    result = Actors::ImportHelloassoCsv.call(
+      edition: current_edition,
+      file: params[:csv_file]
+    )
+
+    if result.success?
+      summary = result.result
+      message = [
+        "Import HelloAsso terminé.",
+        "#{summary[:created]} inscriptions créées",
+        "#{summary[:updated]} mises à jour"
+      ].join(" ")
+
+      if summary[:errors].any?
+        redirect_to export_path, alert: "#{message} #{summary[:errors].count} erreur(s)."
+      else
+        redirect_to export_path, notice: message
+      end
+    else
+      redirect_to export_path, alert: result.error
+    end
+  end
+
   # GET /exports/participants
   # Columns: Prénom, Nom, Email, Téléphone, DDN, Catégorie, Ateliers, Exclu stats, Mineur seul
   def participants

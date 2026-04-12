@@ -35,6 +35,42 @@ RSpec.describe "Exports", type: :request do
       get export_path
       expect(response).to have_http_status(:ok)
     end
+
+    it "shows the HelloAsso import form" do
+      get export_path
+
+      expect(response.body).to include("Import HelloAsso DONNEES_BRUTES")
+      expect(response.body).to include("Importer CSV")
+      expect(response.body).to include("Import / Export")
+    end
+  end
+
+  describe "POST /exports/import-helloasso-csv" do
+    let(:csv_file) do
+      Rack::Test::UploadedFile.new(
+        Rails.root.join("spec/fixtures/csv/donnes_brutes_sample.csv"),
+        "text/csv"
+      )
+    end
+
+    it "imports the HelloAsso CSV and redirects back to the page" do
+      expect {
+        post export_import_helloasso_csv_path, params: { csv_file: csv_file }
+      }.to change(Registration, :count).by(4)
+
+      expect(response).to redirect_to(export_path)
+      follow_redirect!
+      expect(response.body).to include("Import HelloAsso")
+      expect(response.body).to include("4 inscriptions créées")
+    end
+
+    it "shows an error when no file is provided" do
+      post export_import_helloasso_csv_path
+
+      expect(response).to redirect_to(export_path)
+      follow_redirect!
+      expect(response.body).to include("Fichier CSV manquant")
+    end
   end
 
   # ---------------------------------------------------------------------------
