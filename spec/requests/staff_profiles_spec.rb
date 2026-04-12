@@ -186,4 +186,29 @@ RSpec.describe "StaffProfiles", type: :request do
       expect(staff_profile.reload.travel_override_cents).to be_nil
     end
   end
+
+  describe "DELETE /staff_profiles/:id" do
+    it "deletes the staff profile and redirects to the index" do
+      staff_profile = create(:staff_profile, edition: edition)
+
+      expect {
+        delete staff_profile_path(staff_profile)
+      }.to change(StaffProfile, :count).by(-1)
+
+      expect(response).to redirect_to(staff_profiles_path)
+      follow_redirect!
+      expect(response.body).to include("Dossier supprimé.")
+    end
+
+    it "deletes dependent advances and payments" do
+      staff_profile = create(:staff_profile, edition: edition)
+      create(:staff_advance, staff_profile: staff_profile)
+      create(:staff_payment, staff_profile: staff_profile)
+
+      expect {
+        delete staff_profile_path(staff_profile)
+      }.to change(StaffAdvance, :count).by(-1)
+       .and change(StaffPayment, :count).by(-1)
+    end
+  end
 end

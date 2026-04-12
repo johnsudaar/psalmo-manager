@@ -1,5 +1,5 @@
 class StaffProfilesController < ApplicationController
-  before_action :set_staff_profile, only: [ :show, :edit, :update ]
+  before_action :set_staff_profile, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @staff_profiles = current_edition.staff_profiles
@@ -80,6 +80,16 @@ class StaffProfilesController < ApplicationController
           render :edit, status: :unprocessable_entity
         end
       end
+    end
+  end
+
+  def destroy
+    result = Actors::DestroyStaffProfile.call(staff_profile: @staff_profile)
+
+    if result.success?
+      redirect_to staff_profiles_path, notice: "Dossier supprimé."
+    else
+      redirect_to staff_profile_path(@staff_profile), alert: result.error
     end
   end
 

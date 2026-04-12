@@ -12,6 +12,14 @@
           class: "bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-50",
           target: "_blank",
           rel: "noopener" %>
+    <%= button_to "Supprimer", staff_profile_path(@staff_profile), method: :delete,
+          id: "delete_staff_profile",
+          class: "bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 cursor-pointer",
+          data: {
+            controller: "confirm-delete",
+            action: "click->confirm-delete#confirm",
+            confirm_message: "Supprimer le dossier ##{@staff_profile.dossier_number} ?"
+          } %>
   </div>
 </div>
 

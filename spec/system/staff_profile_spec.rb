@@ -73,8 +73,22 @@ RSpec.describe "Staff profile", type: :system do
 
     it "removes the advance row" do
       expect(page).to have_text("À supprimer")
-      click_on "Supprimer"
+
+      within "turbo-frame#staff_advances" do
+        click_on "Supprimer"
+      end
+
       expect(page).not_to have_text("À supprimer")
+    end
+  end
+
+  describe "deleting the staff profile" do
+    it "removes the dossier and returns to the staff list" do
+      find("#delete_staff_profile").click
+
+      expect(page).to have_current_path(staff_profiles_path)
+      expect(page).to have_text("Dossier supprimé.")
+      expect(page).not_to have_text("Marie Dupont")
     end
   end
 end
