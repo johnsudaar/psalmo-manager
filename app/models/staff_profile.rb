@@ -1,14 +1,33 @@
 class StaffProfile < ApplicationRecord
   has_paper_trail skip: [ :updated_at ], skip_unchanged: true
 
-  belongs_to :person
+  belongs_to :person, optional: true
   belongs_to :edition
   has_many :staff_advances, dependent: :destroy
   has_many :staff_payments, dependent: :destroy
 
   validates :dossier_number, presence: true, uniqueness: { scope: :edition_id }
+  validates :last_name, :first_name, presence: true, unless: -> { person.present? }
+  validate :person_or_direct_fields
 
   before_validation :assign_dossier_number, on: :create
+
+  # Returns the display name whether the staff is linked to a Person or entered directly.
+  def full_name
+    if person
+      person.full_name
+    else
+      "#{first_name} #{last_name}".strip
+    end
+  end
+
+  def display_email
+    person&.email || email
+  end
+
+  def display_phone
+    person&.phone || phone
+  end
 
   def effective_km_rate_cents
     km_rate_override_cents || edition.km_rate_cents
@@ -64,6 +83,12 @@ class StaffProfile < ApplicationRecord
   end
 
   private
+
+  def person_or_direct_fields
+    return if person.present? || (first_name.present? && last_name.present?)
+
+    errors.add(:base, "Un animateur doit être lié à une personne ou avoir un nom et prénom saisis directement")
+  end
 
   def assign_dossier_number
     return unless edition

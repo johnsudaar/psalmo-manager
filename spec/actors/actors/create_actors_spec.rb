@@ -4,7 +4,7 @@ RSpec.describe Actors::CreateStaffProfile do
   let(:edition) { create(:edition) }
   let(:person)  { create(:person) }
 
-  context "happy path" do
+  context "linked to an existing person" do
     subject(:result) do
       described_class.call(
         edition:              edition,
@@ -27,6 +27,50 @@ RSpec.describe Actors::CreateStaffProfile do
 
     it "sets context.staff_profile" do
       expect(result.staff_profile).to be_a(StaffProfile)
+    end
+
+    it "links the person" do
+      expect(result.staff_profile.person).to eq(person)
+    end
+  end
+
+  context "direct entry without a person" do
+    subject(:result) do
+      described_class.call(
+        edition:              edition,
+        person:               nil,
+        staff_profile_params: { first_name: "Marie", last_name: "Dupont", email: "marie@example.test" }
+      )
+    end
+
+    it "succeeds" do
+      expect(result).to be_success
+    end
+
+    it "creates a StaffProfile without a linked person" do
+      expect(result.staff_profile.person).to be_nil
+    end
+
+    it "stores the direct name fields" do
+      sp = result.staff_profile
+      expect(sp.first_name).to eq("Marie")
+      expect(sp.last_name).to eq("Dupont")
+    end
+
+    it "exposes full_name from direct fields" do
+      expect(result.staff_profile.full_name).to eq("Marie Dupont")
+    end
+  end
+
+  context "failure: neither person nor direct name" do
+    it "fails with a validation error" do
+      result = described_class.call(
+        edition:              edition,
+        person:               nil,
+        staff_profile_params: {}
+      )
+      expect(result).to be_failure
+      expect(result.error).to be_present
     end
   end
 end

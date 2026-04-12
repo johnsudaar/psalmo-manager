@@ -9,7 +9,6 @@ class FicheIndemnisationPdf
 
   def initialize(staff_profile)
     @sp       = staff_profile
-    @person   = staff_profile.person
     @edition  = staff_profile.edition
     @document = Prawn::Document.new(
       page_size:   "A4",
@@ -66,7 +65,7 @@ class FicheIndemnisationPdf
     move_down 6
     font_size(10) do
       text "Numéro de dossier : #{@sp.dossier_number}"
-      text "Nom : #{@person.last_name}    Prénom : #{@person.first_name}"
+      text "Nom : #{@sp.full_name}"
     end
     move_down 6
     stroke_color RULE

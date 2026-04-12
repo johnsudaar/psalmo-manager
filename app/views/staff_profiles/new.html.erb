@@ -12,14 +12,57 @@
     <% end %>
 
     <%= form_with model: @staff_profile, url: staff_profiles_path, method: :post do |f| %>
-      <div class="space-y-4">
+      <div class="space-y-6">
+
+        <%# — Option 1: lier à une personne existante — %>
         <div>
+          <p class="text-sm font-semibold text-gray-700 mb-3">Option 1 — Lier à une personne existante</p>
           <%= f.label :person_id, "Animateur", class: "block text-sm font-medium text-gray-700 mb-1" %>
           <% people = Person.order(:last_name, :first_name) %>
           <%= f.select :person_id,
                 people.map { |p| ["#{p.full_name} (#{p.email})", p.id] },
                 { include_blank: "— Choisir une personne —" },
                 class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" %>
+        </div>
+
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-gray-200"></div>
+          </div>
+          <div class="relative flex justify-center">
+            <span class="bg-white px-3 text-sm text-gray-400">ou</span>
+          </div>
+        </div>
+
+        <%# — Option 2: saisie directe — %>
+        <div>
+          <p class="text-sm font-semibold text-gray-700 mb-3">Option 2 — Saisir directement</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <%= f.label :first_name, "Prénom", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= f.text_field :first_name,
+                    class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                    placeholder: "Prénom" %>
+            </div>
+            <div>
+              <%= f.label :last_name, "Nom", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= f.text_field :last_name,
+                    class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                    placeholder: "Nom" %>
+            </div>
+            <div>
+              <%= f.label :email, "Email", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= f.email_field :email,
+                    class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                    placeholder: "email@exemple.fr" %>
+            </div>
+            <div>
+              <%= f.label :phone, "Téléphone", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= f.telephone_field :phone,
+                    class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                    placeholder: "06 00 00 00 00" %>
+            </div>
+          </div>
         </div>
 
         <div class="pt-2">

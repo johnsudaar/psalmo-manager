@@ -22,7 +22,7 @@
         <% balance = sp.balance_cents %>
         <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
           <td class="px-6 py-4 text-sm text-gray-700"><%= sp.dossier_number %></td>
-          <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= sp.person.full_name %></td>
+          <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= sp.full_name %></td>
           <td class="px-6 py-4 text-sm text-gray-700"><%= sp.transport_mode.presence || "—" %></td>
           <td class="px-6 py-4 text-sm text-gray-700"><%= sp.km_traveled || 0 %></td>
           <td class="px-6 py-4 text-sm text-gray-700"><%= format_euros(sp.allowance_cents) %></td>

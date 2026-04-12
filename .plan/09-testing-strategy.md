@@ -61,7 +61,8 @@ spec/
 ├── requests/
 │   ├── webhooks/
 │   │   └── helloasso_spec.rb
-│   └── exports_spec.rb
+│   ├── exports_spec.rb
+│   └── orders_spec.rb
 ├── queries/
 │   └── dashboard_stats_spec.rb
 ├── pdf/
@@ -409,6 +410,7 @@ end
 ### CSV Importers
 
 Use fixture CSV files in `spec/fixtures/csv/`. Assert record counts and specific field values.
+Fixture CSVs must use fictional names and `.example.test` email addresses only.
 
 ```ruby
 RSpec.describe Importers::ParticipantsCsvImporter do
@@ -438,6 +440,10 @@ end
 ## Request Specs
 
 Test HTTP responses, authentication, and content type. No JavaScript.
+
+Important lesson: request specs must cover a smoke-test render for every controller endpoint,
+especially index pages. This catches controller/view integration errors such as a bad
+`includes(:association_name)` that model or actor specs will never exercise.
 
 ```ruby
 RSpec.describe "Webhooks::Helloasso", type: :request do
@@ -478,7 +484,7 @@ RSpec.describe FicheIndemnisationPdf do
   end
 
   it "includes the staff member's name" do
-    expect(pdf_text).to include(staff_profile.person.last_name)
+    expect(pdf_text).to include(staff_profile.full_name)
   end
 
   it "includes the dossier number" do
@@ -588,3 +594,6 @@ Use `SimpleCov` optionally — not mandatory but recommended once the suite is s
 - [ ] `bundle exec rubocop` — no offences
 - [ ] `bundle exec rake db:migrate` — migration runs cleanly
 - [ ] No hardcoded credentials or real personal data in fixtures
+
+Project-specific verification command:
+- [ ] `docker compose exec -e RAILS_ENV=test app bundle exec rspec`

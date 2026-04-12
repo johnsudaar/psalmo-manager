@@ -4,7 +4,7 @@ RSpec.describe StaffProfile, type: :model do
   subject(:profile) { build(:staff_profile) }
 
   describe "associations" do
-    it { is_expected.to belong_to(:person) }
+    it { is_expected.to belong_to(:person).optional }
     it { is_expected.to belong_to(:edition) }
     it { is_expected.to have_many(:staff_advances).dependent(:destroy) }
     it { is_expected.to have_many(:staff_payments).dependent(:destroy) }

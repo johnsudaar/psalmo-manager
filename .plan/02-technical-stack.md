@@ -358,7 +358,11 @@ lib/
 
 ```bash
 # Database
-DATABASE_URL=postgresql://psalmo:psalmo@localhost:5432/psalmo_manager_development
+# Important: do not include the database name here. Rails merges DATABASE_URL with
+# config/database.yml per environment, so the DB name must come from database.yml.
+# If the DB name is hardcoded in DATABASE_URL, development and test can end up
+# pointing at the same database.
+DATABASE_URL=postgresql://psalmo:psalmo@localhost:5432
 
 # Redis
 REDIS_URL=redis://localhost:6379/0
@@ -395,6 +399,14 @@ has a well-defined structure that maps naturally to Prawn's box/table primitives
 ### Why Pagy (not Kaminari)?
 Pagy is ~40x faster than Kaminari for large datasets and has zero dependencies. The API is
 slightly different but the migration cost is negligible.
+
+### Docker env change caveat
+When `DATABASE_URL` changes in `docker-compose.yml`, `docker compose restart` is not enough to pick
+up the new environment. The app container must be recreated, e.g.:
+
+```bash
+docker compose up -d --force-recreate app
+```
 
 ### Why no Ransack?
 The filtering needs are simple enough to handle with hand-written scopes on models. Ransack

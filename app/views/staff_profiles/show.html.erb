@@ -4,7 +4,7 @@
   <div class="flex items-center gap-4">
     <%= link_to "← Staff", staff_profiles_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
     <h1 class="text-2xl font-semibold text-gray-900">
-      Dossier #<%= @staff_profile.dossier_number %> — <%= @staff_profile.person.full_name %>
+      Dossier #<%= @staff_profile.dossier_number %> — <%= @staff_profile.full_name %>
     </h1>
   </div>
   <div class="flex gap-3">

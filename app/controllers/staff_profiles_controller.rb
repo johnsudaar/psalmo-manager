@@ -3,9 +3,9 @@ class StaffProfilesController < ApplicationController
 
   def index
     @staff_profiles = current_edition.staff_profiles
-      .joins(:person)
+      .left_joins(:person)
       .includes(:person)
-      .order("people.last_name")
+      .order("COALESCE(people.last_name, staff_profiles.last_name)")
   end
 
   def new
@@ -13,9 +13,12 @@ class StaffProfilesController < ApplicationController
   end
 
   def create
+    person = Person.find_by(id: staff_profile_params[:person_id]) if staff_profile_params[:person_id].present?
+
     result = Actors::CreateStaffProfile.call(
-      edition: current_edition,
-      person_id: staff_profile_params[:person_id]
+      edition:              current_edition,
+      person:               person,
+      staff_profile_params: staff_profile_params.except(:person_id)
     )
 
     if result.success?
@@ -88,7 +91,7 @@ class StaffProfilesController < ApplicationController
     pdf = FicheIndemnisationPdf.new(@staff_profile).render
 
     send_data pdf,
-              filename:    "fiche_#{@staff_profile.dossier_number}_#{@staff_profile.person.last_name}.pdf",
+              filename:    "fiche_#{@staff_profile.dossier_number}_#{@staff_profile.full_name.gsub(' ', '_')}.pdf",
               type:        "application/pdf",
               disposition: "inline"
   end
@@ -102,6 +105,10 @@ class StaffProfilesController < ApplicationController
   def staff_profile_params
     params.require(:staff_profile).permit(
       :person_id,
+      :first_name,
+      :last_name,
+      :email,
+      :phone,
       :transport_mode,
       :km_traveled,
       :km_rate_override_cents,

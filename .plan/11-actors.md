@@ -239,14 +239,22 @@ Sets `context.job_id` on success for display feedback.
 
 **Context inputs**:
 - `context.edition`
-- `context.person` — the `Person` to associate
+- `context.person` — the `Person` to associate (optional)
 - `context.staff_profile_params` — permitted params hash
 
 **Context outputs**:
 - `context.staff_profile`
 
-**Logic**: Build and save `StaffProfile`. The `dossier_number` is auto-assigned by the model's
-`before_create` callback.
+**Logic**:
+1. Build `StaffProfile` from `staff_profile_params`.
+2. Associate `context.person` if present.
+3. Save the profile.
+4. Fail with validation errors if neither an existing `Person` nor direct-entry name fields are
+   provided.
+
+This actor supports both creation modes:
+- linked to an existing `Person`
+- direct entry on `staff_profiles` (`first_name`, `last_name`, optional `email`, `phone`)
 
 ---
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_11_213234) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_12_114111) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -111,7 +111,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_11_213234) do
   end
 
   create_table "staff_profiles", force: :cascade do |t|
-    t.bigint "person_id", null: false
+    t.bigint "person_id"
     t.bigint "edition_id", null: false
     t.integer "dossier_number", null: false
     t.string "internal_id"
@@ -131,8 +131,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_11_213234) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.string "email"
+    t.string "phone"
     t.index ["edition_id"], name: "index_staff_profiles_on_edition_id"
-    t.index ["person_id", "edition_id"], name: "index_staff_profiles_on_person_id_and_edition_id", unique: true
+    t.index ["person_id", "edition_id"], name: "index_staff_profiles_on_person_id_and_edition_id", unique: true, where: "(person_id IS NOT NULL)"
     t.index ["person_id"], name: "index_staff_profiles_on_person_id"
   end
 

@@ -1,6 +1,6 @@
 class OrdersController < ApplicationController
   def index
-    scope = current_edition.orders.includes(:person).order(order_date: :desc)
+    scope = current_edition.orders.includes(:payer).order(order_date: :desc)
 
     scope = scope.where(status: params[:status]) if params[:status].present?
     scope = scope.where(promo_code: params[:promo_code]) if params[:promo_code].present?
