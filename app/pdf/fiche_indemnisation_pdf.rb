@@ -13,7 +13,7 @@ class FicheIndemnisationPdf
     @document = Prawn::Document.new(
       page_size:   "A4",
       page_layout: :portrait,
-      margin:      [ mm(14), mm(20), mm(20), mm(20) ]
+      margin:      [ mm(10), mm(16), mm(16), mm(16) ]
     )
     font "Helvetica"
     fill_color BLACK
@@ -46,6 +46,8 @@ class FicheIndemnisationPdf
     section_versements
     move_down 8
     section_soldes
+    move_down 8
+    section_commentaire
     footer
   end
 
@@ -78,7 +80,6 @@ class FicheIndemnisationPdf
     fill_color BLACK
     move_down 6
     font_size(10) do
-      text "Numéro de dossier : #{@sp.dossier_number}"
       text "Nom : #{@sp.full_name}"
     end
     move_down 6
@@ -195,6 +196,22 @@ class FicheIndemnisationPdf
     end
   end
 
+  def section_commentaire
+    bounding_box([ 0, cursor ], width: bounds.width, height: 76) do
+      stroke_color INDIGO
+      stroke_bounds
+      fill_color INDIGO
+      font_size(9) { text_box "COMMENTAIRE", at: [ 8, cursor - 8 ], style: :bold, width: bounds.width - 16 }
+      fill_color BLACK
+
+      if @sp.notes.present?
+        font_size(9) { text_box @sp.notes, at: [ 8, cursor - 24 ], width: bounds.width - 16, height: 46, overflow: :shrink_to_fit }
+      end
+
+      stroke_color BLACK
+    end
+  end
+
   def section_soldes
     balance = @sp.balance_cents
     owed_to_instructor = balance > 0 ? balance : 0
@@ -284,7 +301,7 @@ class FicheIndemnisationPdf
         borders: [],
         size: 9,
         font_style: style,
-        padding: [ 2, 2, 2, 2 ]
+        padding: [ 1, 2, 1, 2 ]
       }
     )
   end
@@ -319,7 +336,7 @@ class FicheIndemnisationPdf
       rows,
       width: bounds.width,
       column_widths: [ 80, 80, bounds.width - 160 ],
-      cell_style: { size: 9, borders: [ :bottom ], border_color: RULE, padding: [ 3, 2, 3, 2 ] },
+      cell_style: { size: 9, borders: [ :bottom ], border_color: RULE, padding: [ 2, 2, 2, 2 ] },
       row_colors: [ "FFFFFF", "F9FAFB" ]
     )
   end
@@ -332,7 +349,7 @@ class FicheIndemnisationPdf
       rows,
       width: bounds.width,
       column_widths: [ 80, 80, bounds.width - 160 ],
-      cell_style: { size: 9, borders: [ :bottom ], border_color: RULE, padding: [ 3, 2, 3, 2 ] },
+      cell_style: { size: 9, borders: [ :bottom ], border_color: RULE, padding: [ 2, 2, 2, 2 ] },
       row_colors: [ "FFFFFF", "F9FAFB" ]
     )
   end

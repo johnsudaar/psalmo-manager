@@ -59,6 +59,10 @@ RSpec.describe FicheIndemnisationPdf do
     expect(pdf_text).to include("Indemnités")
   end
 
+  it "includes the comment section" do
+    expect(pdf_text).to include("COMMENTAIRE")
+  end
+
   it "includes the default travel label" do
     expect(pdf_text).to include("Frais de déplacement")
   end
@@ -133,6 +137,25 @@ RSpec.describe FicheIndemnisationPdf do
 
     it "uses the overridden travel amount" do
       expect(pdf_text).to include("45,50")
+    end
+  end
+
+  context "with notes" do
+    let(:staff_profile) do
+      create(:staff_profile,
+        person: person,
+        edition: edition,
+        notes: "Apporter les partitions imprimees")
+    end
+
+    it "includes the staff comment" do
+      expect(pdf_text).to include("Apporter les partitions imprimees")
+    end
+  end
+
+  context "without notes" do
+    it "does not render a placeholder comment" do
+      expect(pdf_text).not_to include("Aucun commentaire")
     end
   end
 end
