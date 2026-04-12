@@ -92,4 +92,18 @@ RSpec.describe "StaffProfiles", type: :request do
       expect(response.body).to include("Marie Dupont")
     end
   end
+
+  describe "PATCH /staff_profiles/:id" do
+    it "updates a field through the turbo-stream autosave path" do
+      staff_profile = create(:staff_profile, edition: edition, allowance_cents: 20_000)
+
+      patch staff_profile_path(staff_profile),
+            params: { staff_profile: { allowance_cents: "23456" } },
+            headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(staff_profile.reload.allowance_cents).to eq(23_456)
+    end
+  end
 end
