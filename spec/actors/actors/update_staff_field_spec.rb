@@ -19,6 +19,15 @@ RSpec.describe Actors::UpdateStaffField do
       expect(staff_profile.reload.km_rate_override_cents).to be_nil
     end
 
+    it "clears the travel override when submitted blank" do
+      staff_profile.update!(travel_override_cents: 4550)
+
+      result = described_class.call(staff_profile: staff_profile, field: "travel_override_cents", value: "")
+
+      expect(result).to be_success
+      expect(staff_profile.reload.travel_override_cents).to be_nil
+    end
+
     it "updates a string field" do
       result = described_class.call(staff_profile: staff_profile, field: "transport_mode", value: "Train")
       expect(result).to be_success

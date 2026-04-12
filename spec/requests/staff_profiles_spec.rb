@@ -163,5 +163,16 @@ RSpec.describe "StaffProfiles", type: :request do
       expect(response).to have_http_status(:ok)
       expect(staff_profile.reload.travel_override_cents).to eq(4550)
     end
+
+    it "clears the travel expense override when submitted blank" do
+      staff_profile = create(:staff_profile, edition: edition, travel_override_cents: 4550)
+
+      patch staff_profile_path(staff_profile),
+            params: { staff_profile: { travel_override_cents: "" } },
+            headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:ok)
+      expect(staff_profile.reload.travel_override_cents).to be_nil
+    end
   end
 end

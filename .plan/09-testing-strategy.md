@@ -590,7 +590,7 @@ Use `SimpleCov` optionally — not mandatory but recommended once the suite is s
 
 ## CI Checklist (for any PR)
 
-- [ ] `bundle exec rspec` — all tests pass
+- [ ] `docker compose exec -e RAILS_ENV=test app bundle exec rspec` — all tests pass
 - [ ] `bundle exec rubocop` — no offences
 - [ ] `bundle exec rake db:migrate` — migration runs cleanly
 - [ ] No hardcoded credentials or real personal data in fixtures

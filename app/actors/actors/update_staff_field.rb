@@ -25,7 +25,7 @@ module Actors
         context.fail!(error: "Champ non autorisé")
       end
 
-      if field == "km_rate_override_cents" && value.to_s.strip.empty?
+      if %w[km_rate_override_cents travel_override_cents].include?(field) && value.to_s.strip.empty?
         value = nil
       elsif CENTS_FIELDS.include?(field)
         value = (value.to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f * 100).round
