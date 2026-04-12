@@ -216,10 +216,10 @@
                    value="<%= decimal_euros(@staff_profile.member_uncovered_meals_cents) %>"
                    class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                    inputmode="decimal"
-                   data-controller="autosave currency-input"
-                   data-action="blur->autosave#save"
-                   data-autosave-url-value="<%= autosave_url %>"
-                   data-autosave-param-value="staff_profile[member_uncovered_meals_cents]">
+                    data-controller="autosave currency-input"
+                    data-action="blur->autosave#save"
+                    data-autosave-url-value="<%= autosave_url %>"
+                    data-autosave-param-value="staff_profile[member_uncovered_meals_cents]">
             <div id="field_error_member_uncovered_meals_cents" class="text-red-600 text-sm mt-1"></div>
           </div>
           <div>
@@ -258,6 +258,21 @@
       </div>
 
     </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Commentaire</h2>
+    <%= text_area_tag "staff_profile[notes]",
+          @staff_profile.notes,
+          rows: 4,
+          class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+          data: {
+            controller: "autosave",
+            action: "blur->autosave#save",
+            autosave_url_value: autosave_url,
+            autosave_param_value: "staff_profile[notes]"
+          } %>
+    <div id="field_error_notes" class="text-red-600 text-sm mt-1"></div>
   </div>
 
   <%# === Section 4: Résumé financier (Turbo Frame) === %>

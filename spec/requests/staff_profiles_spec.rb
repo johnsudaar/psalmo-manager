@@ -35,7 +35,73 @@ RSpec.describe "StaffProfiles", type: :request do
       create(:staff_profile, person: nil, edition: edition, first_name: "Marie", last_name: "Dupont")
       get staff_profiles_path
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Marie Dupont")
+      expect(response.body).to include("Marie")
+      expect(response.body).to include("Dupont")
+    end
+
+    it "renders spreadsheet-style columns and totals" do
+      first = create(
+        :staff_profile,
+        edition: edition,
+        internal_id: "001_",
+        transport_mode: "Train",
+        km_traveled: 100,
+        allowance_cents: 10_000,
+        supplies_cost_cents: 1_000,
+        accommodation_cost_cents: 2_000,
+        meals_cost_cents: 500,
+        tickets_cost_cents: 700,
+        member_uncovered_accommodation_cents: 300,
+        member_uncovered_meals_cents: 200,
+        member_uncovered_tickets_cents: 100,
+        member_covered_tickets_cents: 400,
+        allowance_label: "Cachet",
+        notes: "Premiere ligne"
+      )
+      second = create(
+        :staff_profile,
+        edition: edition,
+        person: nil,
+        first_name: "Marie",
+        last_name: "Dupont",
+        internal_id: "002_",
+        transport_mode: "Voiture",
+        km_traveled: 50,
+        allowance_cents: 20_000,
+        supplies_cost_cents: 2_000,
+        accommodation_cost_cents: 1_000,
+        meals_cost_cents: 600,
+        tickets_cost_cents: 800,
+        member_uncovered_accommodation_cents: 0,
+        member_uncovered_meals_cents: 100,
+        member_uncovered_tickets_cents: 50,
+        member_covered_tickets_cents: 200,
+        allowance_label: "Prestation",
+        notes: "Deuxieme ligne"
+      )
+      create(:staff_advance, staff_profile: first, amount_cents: 1_500)
+      create(:staff_advance, staff_profile: second, amount_cents: 500)
+      create(:staff_payment, staff_profile: first, amount_cents: 3_000)
+      create(:staff_payment, staff_profile: second, amount_cents: 2_000)
+
+      get staff_profiles_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("Identifiant")
+      expect(response.body).not_to include("Mode de déplacement")
+      expect(response.body).not_to include("KM parcourus")
+      expect(response.body).not_to include("Nom indemnité")
+      expect(response.body).to include("Frais de déplacement")
+      expect(response.body).to include("Montant reçu de l'animateur")
+      expect(response.body).to include("Montant versé à l'animateur")
+      expect(response.body).to include("Totaux")
+      expect(response.body).to include("Premiere ligne")
+      expect(response.body).to include("Deuxieme ligne")
+      expect(response.body).to include("30,00 €")
+      expect(response.body).to include("300,00 €")
+      expect(response.body).to include("49,50 €")
+      expect(response.body).to include("20,00 €")
+      expect(response.body).to include("50,00 €")
     end
   end
 
@@ -93,6 +159,17 @@ RSpec.describe "StaffProfiles", type: :request do
       expect(response.body).to include("<option selected=\"selected\" value=\"Train\">Train</option>")
       expect(response.body).to include("<option selected=\"selected\" value=\"Cachet\">Cachet</option>")
       expect(response.body).to include("target=\"_blank\"")
+    end
+
+    it "renders an editable comment field" do
+      staff_profile = create(:staff_profile, edition: edition, notes: "Remarque existante")
+
+      get staff_profile_path(staff_profile)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Commentaire")
+      expect(response.body).to include("Remarque existante")
+      expect(response.body).to include("staff_profile[notes]")
     end
 
     it "defaults the allowance label to the first configured option" do
@@ -162,6 +239,17 @@ RSpec.describe "StaffProfiles", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(staff_profile.reload.travel_override_cents).to eq(4550)
+    end
+
+    it "updates notes through the turbo-stream autosave path" do
+      staff_profile = create(:staff_profile, edition: edition, notes: nil)
+
+      patch staff_profile_path(staff_profile),
+            params: { staff_profile: { notes: "Nouvelle remarque" } },
+            headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:ok)
+      expect(staff_profile.reload.notes).to eq("Nouvelle remarque")
     end
 
     it "resets traveled kilometers to zero when submitted blank" do
