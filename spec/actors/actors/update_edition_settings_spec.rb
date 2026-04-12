@@ -27,6 +27,7 @@ RSpec.describe Actors::UpdateEditionSettings do
       expect(result).to be_success
       expect(edition.reload.allowance_label_options).to eq([ "Cachet", "Prestation" ])
     end
+
   end
 
   context "with a disallowed field" do
