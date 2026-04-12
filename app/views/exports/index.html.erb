@@ -9,7 +9,7 @@
       <p class="text-sm font-medium text-gray-900">Liste des participants</p>
       <p class="text-xs text-gray-500 mt-0.5">Prénom, Nom, Email, Téléphone, DDN, Catégorie, Ateliers, Exclu stats, Mineur seul</p>
     </div>
-    <%= link_to "Télécharger CSV", participants_export_path,
+    <%= link_to "Télécharger CSV", export_participants_path,
           class: "bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition-colors" %>
   </div>
 
@@ -18,7 +18,7 @@
       <p class="text-sm font-medium text-gray-900">Listes par atelier</p>
       <p class="text-xs text-gray-500 mt-0.5">Feuilles de présence — une section par atelier</p>
     </div>
-    <%= link_to "Télécharger CSV", workshop_roster_csv_export_path,
+    <%= link_to "Télécharger CSV", export_workshop_roster_csv_path,
           class: "bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition-colors" %>
   </div>
 
@@ -27,7 +27,7 @@
       <p class="text-sm font-medium text-gray-900">Récapitulatif staff</p>
       <p class="text-xs text-gray-500 mt-0.5">Tous les champs financiers par animateur(s)</p>
     </div>
-    <%= link_to "Télécharger CSV", staff_summary_export_path,
+    <%= link_to "Télécharger CSV", export_staff_summary_path,
           class: "bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition-colors" %>
   </div>
 
@@ -36,7 +36,7 @@
       <p class="text-sm font-medium text-gray-900">Rapport financier</p>
       <p class="text-xs text-gray-500 mt-0.5">Indicateurs agrégés de l'édition (billetterie, remises, totaux)</p>
     </div>
-    <%= link_to "Télécharger CSV", financial_report_export_path,
+    <%= link_to "Télécharger CSV", export_financial_report_path,
           class: "bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition-colors" %>
   </div>
 
@@ -45,7 +45,7 @@
       <p class="text-sm font-medium text-gray-900">Commandes HelloAsso</p>
       <p class="text-xs text-gray-500 mt-0.5">Date, payeur, participants par commande</p>
     </div>
-    <%= link_to "Télécharger CSV", orders_csv_export_path,
+    <%= link_to "Télécharger CSV", export_orders_csv_path,
           class: "bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition-colors" %>
   </div>
 

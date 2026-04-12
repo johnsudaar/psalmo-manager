@@ -10,25 +10,34 @@ class StaffAdvancesController < ApplicationController
     )
 
     if result.success?
-      render turbo_stream: [
-        turbo_stream.replace("staff_advances", render_to_string(
-          partial: "staff_profiles/staff_advances",
-          locals: { staff_profile: @staff_profile.reload }
-        )),
-        turbo_stream.replace("financial_summary", render_to_string(
-          partial: "staff_profiles/financial_summary",
-          locals: { staff_profile: @staff_profile }
-        ))
-      ]
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.replace("staff_advances", render_to_string(
+              partial: "staff_profiles/staff_advances",
+              locals: { staff_profile: @staff_profile.reload }
+            )),
+            turbo_stream.replace("financial_summary", render_to_string(
+              partial: "staff_profiles/financial_summary",
+              locals: { staff_profile: @staff_profile }
+            ))
+          ]
+        end
+        format.html { redirect_to staff_profile_path(@staff_profile), notice: "Acompte ajouté." }
+      end
     else
-      flash.now[:alert] = result.error
-      render turbo_stream: turbo_stream.replace(
-        "staff_advances",
-        render_to_string(
-          partial: "staff_profiles/staff_advances",
-          locals: { staff_profile: @staff_profile }
-        )
-      )
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            "staff_advances",
+            render_to_string(
+              partial: "staff_profiles/staff_advances",
+              locals: { staff_profile: @staff_profile }
+            )
+          )
+        end
+        format.html { redirect_to staff_profile_path(@staff_profile), alert: result.error }
+      end
     end
   end
 
@@ -36,16 +45,21 @@ class StaffAdvancesController < ApplicationController
     @advance = @staff_profile.staff_advances.find(params[:id])
     Actors::RemoveStaffAdvance.call(staff_advance: @advance)
 
-    render turbo_stream: [
-      turbo_stream.replace("staff_advances", render_to_string(
-        partial: "staff_profiles/staff_advances",
-        locals: { staff_profile: @staff_profile.reload }
-      )),
-      turbo_stream.replace("financial_summary", render_to_string(
-        partial: "staff_profiles/financial_summary",
-        locals: { staff_profile: @staff_profile }
-      ))
-    ]
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace("staff_advances", render_to_string(
+            partial: "staff_profiles/staff_advances",
+            locals: { staff_profile: @staff_profile.reload }
+          )),
+          turbo_stream.replace("financial_summary", render_to_string(
+            partial: "staff_profiles/financial_summary",
+            locals: { staff_profile: @staff_profile }
+          ))
+        ]
+      end
+      format.html { redirect_to staff_profile_path(@staff_profile), notice: "Acompte supprimé." }
+    end
   end
 
   private

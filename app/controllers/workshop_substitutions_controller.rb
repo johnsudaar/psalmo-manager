@@ -28,7 +28,7 @@ class WorkshopSubstitutionsController < ApplicationController
 
     result = Actors::ApplyWorkshopSubstitution.call(
       registration: reg,
-      new_workshop: new_ws
+      workshop: new_ws
     )
 
     if result.success?
