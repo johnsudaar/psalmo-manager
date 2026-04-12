@@ -62,6 +62,11 @@ RSpec.describe StaffProfile, type: :model do
       profile.edition.km_rate_cents = 33
       expect(profile.travel_allowance_cents).to eq(3300)
     end
+
+    it "returns the raw override when present" do
+      profile.travel_override_cents = 4550
+      expect(profile.travel_allowance_cents).to eq(4550)
+    end
   end
 
   describe "#total_to_pay_instructor_cents" do

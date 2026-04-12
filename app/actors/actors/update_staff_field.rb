@@ -4,13 +4,14 @@ module Actors
 
     ALLOWED_FIELDS = %w[
       allowance_cents allowance_label km_traveled km_rate_override_cents transport_mode
+      travel_override_cents
       supplies_cost_cents accommodation_cost_cents meals_cost_cents tickets_cost_cents
       member_uncovered_accommodation_cents member_uncovered_meals_cents
       member_uncovered_tickets_cents member_covered_tickets_cents notes
     ].freeze
 
     CENTS_FIELDS = %w[
-      allowance_cents km_rate_override_cents supplies_cost_cents accommodation_cost_cents
+      allowance_cents km_rate_override_cents travel_override_cents supplies_cost_cents accommodation_cost_cents
       meals_cost_cents tickets_cost_cents member_uncovered_accommodation_cents
       member_uncovered_meals_cents member_uncovered_tickets_cents member_covered_tickets_cents
     ].freeze

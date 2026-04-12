@@ -90,9 +90,22 @@ RSpec.describe "StaffProfiles", type: :request do
       get staff_profile_path(staff_profile)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("<option value=\"Train\" selected>Train</option>")
-      expect(response.body).to include("<option value=\"Cachet\" selected>Cachet</option>")
+      expect(response.body).to include("<option selected=\"selected\" value=\"Train\">Train</option>")
+      expect(response.body).to include("<option selected=\"selected\" value=\"Cachet\">Cachet</option>")
       expect(response.body).to include("target=\"_blank\"")
+    end
+
+    it "defaults the allowance label to the first configured option" do
+      edition.update!(allowance_labels: "Cachet\nPrestation")
+      staff_profile = create(:staff_profile, edition: edition, allowance_label: nil)
+
+      get staff_profile_path(staff_profile)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("<option selected=\"selected\" value=\"Cachet\">Cachet</option>")
+      allowance_select = response.body[/<select name=\"staff_profile\[allowance_label\]\".*?<\/select>/m]
+      expect(allowance_select).to be_present
+      expect(allowance_select).not_to include("<option value=\"\"")
     end
   end
 
@@ -138,6 +151,17 @@ RSpec.describe "StaffProfiles", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(staff_profile.reload.km_rate_override_cents).to eq(41)
+    end
+
+    it "accepts a raw travel expense override" do
+      staff_profile = create(:staff_profile, edition: edition, travel_override_cents: nil)
+
+      patch staff_profile_path(staff_profile),
+            params: { staff_profile: { travel_override_cents: "45,50" } },
+            headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:ok)
+      expect(staff_profile.reload.travel_override_cents).to eq(4550)
     end
   end
 end

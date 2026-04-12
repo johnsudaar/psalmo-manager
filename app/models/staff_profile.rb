@@ -29,11 +29,17 @@ class StaffProfile < ApplicationRecord
     person&.phone || phone
   end
 
+  def effective_allowance_label
+    allowance_label.presence || edition.allowance_label_options.first
+  end
+
   def effective_km_rate_cents
     km_rate_override_cents || edition.km_rate_cents
   end
 
   def travel_allowance_cents
+    return travel_override_cents if travel_override_cents.present?
+
     (km_traveled * effective_km_rate_cents).round
   end
 

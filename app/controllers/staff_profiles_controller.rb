@@ -112,6 +112,7 @@ class StaffProfilesController < ApplicationController
       :transport_mode,
       :km_traveled,
       :km_rate_override_cents,
+      :travel_override_cents,
       :allowance_cents,
       :allowance_label,
       :supplies_cost_cents,

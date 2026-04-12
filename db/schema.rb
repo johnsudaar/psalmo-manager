@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_12_140002) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_12_141647) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -26,6 +26,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_12_140002) do
     t.datetime "updated_at", null: false
     t.text "transport_modes"
     t.text "allowance_labels"
+    t.text "travel_labels"
     t.index ["year"], name: "index_editions_on_year", unique: true
   end
 
@@ -137,6 +138,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_12_140002) do
     t.string "last_name"
     t.string "email"
     t.string "phone"
+    t.string "travel_label"
+    t.integer "travel_override_cents"
     t.index ["edition_id"], name: "index_staff_profiles_on_edition_id"
     t.index ["person_id", "edition_id"], name: "index_staff_profiles_on_person_id_and_edition_id", unique: true, where: "(person_id IS NOT NULL)"
     t.index ["person_id"], name: "index_staff_profiles_on_person_id"

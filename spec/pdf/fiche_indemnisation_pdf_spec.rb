@@ -55,6 +55,10 @@ RSpec.describe FicheIndemnisationPdf do
     expect(pdf_text).to include("Cachet")
   end
 
+  it "includes the default travel label" do
+    expect(pdf_text).to include("Frais de déplacement")
+  end
+
   it "includes the indemnités amount" do
     expect(pdf_text).to include("200,00")
   end
@@ -109,6 +113,22 @@ RSpec.describe FicheIndemnisationPdf do
     it "renders successfully with override km rate" do
       expect { pdf_bytes }.not_to raise_error
       expect(pdf_text).to include("200")
+    end
+  end
+
+  context "with travel override" do
+    let(:staff_profile) do
+      create(:staff_profile,
+        person:                 person,
+        edition:                edition,
+        km_traveled:            200,
+        travel_override_cents:  4550,
+        allowance_cents:        0,
+        supplies_cost_cents:    0)
+    end
+
+    it "uses the overridden travel amount" do
+      expect(pdf_text).to include("45,50")
     end
   end
 end
