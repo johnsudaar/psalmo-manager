@@ -98,3 +98,18 @@ RSpec.describe Actors::CreateEdition do
     expect(result.error).to be_present
   end
 end
+
+RSpec.describe Actors::UpdateStaffField do
+  let(:staff_profile) { create(:staff_profile, km_rate_override_cents: 41) }
+
+  it "clears the km rate override when submitted blank" do
+    result = described_class.call(
+      staff_profile: staff_profile,
+      field: "km_rate_override_cents",
+      value: ""
+    )
+
+    expect(result).to be_success
+    expect(staff_profile.reload.km_rate_override_cents).to be_nil
+  end
+end

@@ -105,5 +105,16 @@ RSpec.describe "StaffProfiles", type: :request do
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       expect(staff_profile.reload.allowance_cents).to eq(23_456)
     end
+
+    it "clears the km rate override when submitted blank" do
+      staff_profile = create(:staff_profile, edition: edition, km_rate_override_cents: 41)
+
+      patch staff_profile_path(staff_profile),
+            params: { staff_profile: { km_rate_override_cents: "" } },
+            headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:ok)
+      expect(staff_profile.reload.km_rate_override_cents).to be_nil
+    end
   end
 end

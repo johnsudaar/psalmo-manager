@@ -24,7 +24,11 @@ module Actors
         context.fail!(error: "Champ non autorisé")
       end
 
-      value = value.to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f.round if CENTS_FIELDS.include?(field)
+      if field == "km_rate_override_cents" && value.to_s.strip.empty?
+        value = nil
+      elsif CENTS_FIELDS.include?(field)
+        value = value.to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f.round
+      end
 
       unless staff_profile.update(field => value)
         context.fail!(error: staff_profile.errors.full_messages.join(", "))
