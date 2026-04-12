@@ -23,35 +23,47 @@
 <% total_payments_cents = @staff_profiles.sum(&:total_payments_cents) %>
 <% total_balance_cents = @staff_profiles.sum(&:balance_cents) %>
 <% total_balance_class = total_balance_cents.positive? ? "text-green-600" : total_balance_cents.negative? ? "text-red-600" : "text-gray-900" %>
-
+<% format_table_euros = ->(cents) { format_euros(cents).sub(" ", "\u00A0") } %>
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
   <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">N° dossier</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Nom</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Prénom</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Indemnités</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Frais de déplacement</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Frais fournitures atelier</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Total frais à payer</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Hébergement pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Repas pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Billets pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Total animateur pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Hébergement non pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Repas non pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Billets non pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Total membres à payer</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Billets membres pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Total membres pris en charge</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Montant dû à l'animateur</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Montant reçu de l'animateur</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Montant versé à l'animateur</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Solde</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Commentaires</th>
-          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead>
+        <tr class="bg-gray-100 border-b border-gray-300">
+          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide bg-gray-100">Dossier</th>
+          <th class="px-4 py-2 bg-gray-100"></th>
+          <th class="px-4 py-2 border-r border-gray-300 bg-gray-100"></th>
+          <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wide bg-indigo-50 border-r border-indigo-200">Animateur</th>
+          <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-emerald-700 uppercase tracking-wide bg-emerald-50 border-r border-emerald-200">Pris en charge Psalmodia</th>
+          <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-amber-700 uppercase tracking-wide bg-amber-50 border-r border-amber-200">Membres à payer</th>
+          <th colspan="2" class="px-4 py-2 text-left text-xs font-semibold text-cyan-700 uppercase tracking-wide bg-cyan-50 border-r border-cyan-200">Membres pris en charge</th>
+          <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-violet-700 uppercase tracking-wide bg-violet-50 border-r border-violet-200">Règlement</th>
+          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide border-l border-gray-300 bg-gray-100">Suivi</th>
+          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide bg-gray-100">Actions</th>
+        </tr>
+        <tr class="bg-gray-50">
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200 bg-gray-50">N° dossier</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-gray-50">Nom</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200 bg-gray-50">Prénom</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-indigo-50/60">Indemnités</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-indigo-50/60">Frais de déplacement</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-indigo-50/60">Frais fournitures atelier</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-indigo-50/60 border-r border-indigo-200">Total frais à payer</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-emerald-50/60">Hébergement pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-emerald-50/60">Repas pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-emerald-50/60">Billets pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-emerald-50/60 border-r border-emerald-200">Total animateur pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-amber-50/60">Hébergement non pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-amber-50/60">Repas non pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-amber-50/60">Billets non pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-amber-50/60 border-r border-amber-200">Total membres à payer</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-cyan-50/60">Billets membres pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-cyan-50/60 border-r border-cyan-200">Total membres pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-violet-50/60">Montant dû à l'animateur</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-violet-50/60">Montant reçu de l'animateur</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-violet-50/60">Montant versé à l'animateur</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-violet-50/60 border-r border-violet-200">Solde</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide border-l border-gray-200 bg-gray-50">Commentaires</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-gray-50">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
@@ -61,29 +73,30 @@
           </tr>
         <% else %>
           <% @staff_profiles.each_with_index do |sp, i| %>
-            <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
-              <td class="px-4 py-4 text-sm text-gray-700"><%= sp.dossier_number %></td>
+            <% row_bg = i.even? ? "bg-white" : "bg-gray-50" %>
+            <tr class="<%= row_bg %>">
+              <td class="px-4 py-4 text-sm text-gray-700 border-r border-gray-100"><%= sp.dossier_number %></td>
               <td class="px-4 py-4 text-sm font-medium text-gray-900"><%= sp.person&.last_name || sp.last_name %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= sp.person&.first_name || sp.first_name %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.allowance_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.travel_allowance_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.supplies_cost_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.total_to_pay_instructor_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.accommodation_cost_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.meals_cost_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.tickets_cost_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.total_psalmodia_covers_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.member_uncovered_accommodation_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.member_uncovered_meals_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.member_uncovered_tickets_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.total_member_uncovered_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.member_covered_tickets_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.total_member_covered_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.amount_owed_to_instructor_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.total_advances_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= format_euros(sp.total_payments_cents) %></td>
-              <td class="px-4 py-4 text-sm font-medium <%= sp.psalmodia_owes? ? 'text-green-600' : sp.instructor_owes? ? 'text-red-600' : 'text-gray-700' %>"><%= format_euros(sp.balance_cents) %></td>
-              <td class="px-4 py-4 text-sm text-gray-700"><%= sp.notes.presence || "—" %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 border-r border-gray-100"><%= sp.person&.first_name || sp.first_name %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.allowance_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.travel_allowance_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.supplies_cost_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap border-r border-indigo-100"><%= format_table_euros.call(sp.total_to_pay_instructor_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.accommodation_cost_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.meals_cost_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.tickets_cost_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap border-r border-emerald-100"><%= format_table_euros.call(sp.total_psalmodia_covers_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_uncovered_accommodation_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_uncovered_meals_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_uncovered_tickets_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap border-r border-amber-100"><%= format_table_euros.call(sp.total_member_uncovered_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_covered_tickets_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap border-r border-cyan-100"><%= format_table_euros.call(sp.total_member_covered_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.amount_owed_to_instructor_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.total_advances_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.total_payments_cents) %></td>
+              <td class="px-4 py-4 text-sm font-medium whitespace-nowrap border-r border-violet-100 <%= sp.psalmodia_owes? ? 'text-green-600' : sp.instructor_owes? ? 'text-red-600' : 'text-gray-700' %>"><%= format_table_euros.call(sp.balance_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 border-l border-gray-100"><%= sp.notes.presence || "—" %></td>
               <td class="px-4 py-4 text-sm">
                 <%= link_to "Voir", staff_profile_path(sp),
                       class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
@@ -92,29 +105,29 @@
           <% end %>
 
           <tr class="bg-indigo-50 border-t-2 border-indigo-100">
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900">Totaux</td>
-            <td class="px-4 py-4 text-sm text-gray-700">—</td>
-            <td class="px-4 py-4 text-sm text-gray-700">—</td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_allowance_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_travel_allowance_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_supplies_cost_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_to_pay_instructor_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_accommodation_cost_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_meals_cost_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_tickets_cost_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_psalmodia_covers_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_member_uncovered_accommodation_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_member_uncovered_meals_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_member_uncovered_tickets_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_member_uncovered_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_member_covered_tickets_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_member_covered_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_amount_owed_to_instructor_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_advances_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold text-gray-900"><%= format_euros(total_payments_cents) %></td>
-            <td class="px-4 py-4 text-sm font-semibold <%= total_balance_class %>"><%= format_euros(total_balance_cents) %></td>
-            <td class="px-4 py-4 text-sm text-gray-700">—</td>
-            <td class="px-4 py-4 text-sm text-gray-700">—</td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 border-r border-gray-100 bg-indigo-50">Totaux</td>
+            <td class="px-4 py-4 text-sm text-gray-700 bg-indigo-50">—</td>
+            <td class="px-4 py-4 text-sm text-gray-700 border-r border-gray-100 bg-indigo-50">—</td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_allowance_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_travel_allowance_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_supplies_cost_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap border-r border-indigo-100"><%= format_table_euros.call(total_to_pay_instructor_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_accommodation_cost_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_meals_cost_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_tickets_cost_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap border-r border-emerald-100"><%= format_table_euros.call(total_psalmodia_covers_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_uncovered_accommodation_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_uncovered_meals_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_uncovered_tickets_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap border-r border-amber-100"><%= format_table_euros.call(total_member_uncovered_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_covered_tickets_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap border-r border-cyan-100"><%= format_table_euros.call(total_member_covered_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_amount_owed_to_instructor_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_advances_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_payments_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold whitespace-nowrap border-r border-violet-100 <%= total_balance_class %>"><%= format_table_euros.call(total_balance_cents) %></td>
+            <td class="px-4 py-4 text-sm text-gray-700 border-l border-gray-100 bg-indigo-50">—</td>
+            <td class="px-4 py-4 text-sm text-gray-700 bg-indigo-50">—</td>
           </tr>
         <% end %>
       </tbody>
