@@ -15,6 +15,18 @@ RSpec.describe Actors::UpdateEditionSettings do
       expect(result).to be_success
       expect(edition.reload.km_rate_cents).to eq(40)
     end
+
+    it "updates transport mode options" do
+      result = described_class.call(edition: edition, field: "transport_modes", value: "Train\nVoiture")
+      expect(result).to be_success
+      expect(edition.reload.transport_mode_options).to eq([ "Train", "Voiture" ])
+    end
+
+    it "updates allowance label options" do
+      result = described_class.call(edition: edition, field: "allowance_labels", value: "Cachet\nPrestation")
+      expect(result).to be_success
+      expect(edition.reload.allowance_label_options).to eq([ "Cachet", "Prestation" ])
+    end
   end
 
   context "with a disallowed field" do

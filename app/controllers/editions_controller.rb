@@ -15,7 +15,7 @@ class EditionsController < ApplicationController
     if result.success?
       redirect_to editions_path, notice: "Édition créée."
     else
-      @edition = result.edition || Edition.new(edition_params)
+      @edition = result.edition || Edition.new(edition_params.to_h)
       @error = result.error
       render :new, status: :unprocessable_entity
     end
@@ -80,7 +80,9 @@ class EditionsController < ApplicationController
       :start_date,
       :end_date,
       :helloasso_form_slug,
-      :km_rate_cents
+      :km_rate_cents,
+      :transport_modes,
+      :allowance_labels
     )
   end
 end

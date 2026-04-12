@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_12_114111) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_12_140002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -24,6 +24,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_12_114111) do
     t.integer "km_rate_cents", default: 33, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "transport_modes"
+    t.text "allowance_labels"
     t.index ["year"], name: "index_editions_on_year", unique: true
   end
 

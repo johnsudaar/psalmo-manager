@@ -4,6 +4,7 @@ module Actors
 
     ALLOWED_FIELDS = %w[
       name start_date end_date km_rate_cents helloasso_form_slug helloasso_form_type
+      transport_modes allowance_labels
     ].freeze
 
     def call

@@ -9,7 +9,9 @@
   </div>
   <div class="flex gap-3">
     <%= link_to "Générer la fiche PDF", fiche_staff_profile_path(@staff_profile),
-          class: "bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-50" %>
+          class: "bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-50",
+          target: "_blank",
+          rel: "noopener" %>
   </div>
 </div>
 
@@ -24,14 +26,15 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Mode de transport</label>
-        <input type="text"
-               name="staff_profile[transport_mode]"
-               value="<%= @staff_profile.transport_mode %>"
-               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-               data-controller="autosave"
-               data-action="blur->autosave#save"
-               data-autosave-url-value="<%= autosave_url %>"
-               data-autosave-param-value="staff_profile[transport_mode]">
+        <%= select_tag "staff_profile[transport_mode]",
+              options_for_select([["", ""]] + @staff_profile.edition.transport_mode_options.map { |option| [option, option] }, @staff_profile.transport_mode),
+              class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+              data: {
+                controller: "autosave",
+                action: "change->autosave#save",
+                autosave_url_value: autosave_url,
+                autosave_param_value: "staff_profile[transport_mode]"
+              } %>
         <div id="field_error_transport_mode" class="text-red-600 text-sm mt-1"></div>
       </div>
 
@@ -83,14 +86,15 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Libellé indemnité</label>
-        <input type="text"
-               name="staff_profile[allowance_label]"
-               value="<%= @staff_profile.allowance_label %>"
-               class="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-               data-controller="autosave"
-               data-action="blur->autosave#save"
-               data-autosave-url-value="<%= autosave_url %>"
-               data-autosave-param-value="staff_profile[allowance_label]">
+        <%= select_tag "staff_profile[allowance_label]",
+              options_for_select([["", ""]] + @staff_profile.edition.allowance_label_options.map { |option| [option, option] }, @staff_profile.allowance_label),
+              class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+              data: {
+                controller: "autosave",
+                action: "change->autosave#save",
+                autosave_url_value: autosave_url,
+                autosave_param_value: "staff_profile[allowance_label]"
+              } %>
         <div id="field_error_allowance_label" class="text-red-600 text-sm mt-1"></div>
       </div>
 

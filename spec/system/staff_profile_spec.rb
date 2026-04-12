@@ -39,7 +39,8 @@ RSpec.describe "Staff profile", type: :system do
     end
 
     it "has a link to generate the PDF" do
-      expect(page).to have_link("Générer la fiche PDF")
+      expect(page).to have_link("Générer la fiche PDF", visible: :all)
+      expect(page).to have_css("a[target='_blank']", text: "Générer la fiche PDF")
     end
   end
 

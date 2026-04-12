@@ -82,6 +82,18 @@ RSpec.describe "StaffProfiles", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Marie Dupont")
     end
+
+    it "renders edition-configured select options" do
+      edition.update!(transport_modes: "Train\nVoiture", allowance_labels: "Cachet\nPrestation")
+      staff_profile = create(:staff_profile, edition: edition, transport_mode: "Train", allowance_label: "Cachet")
+
+      get staff_profile_path(staff_profile)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("<option value=\"Train\" selected>Train</option>")
+      expect(response.body).to include("<option value=\"Cachet\" selected>Cachet</option>")
+      expect(response.body).to include("target=\"_blank\"")
+    end
   end
 
   describe "GET /staff_profiles/:id/edit" do

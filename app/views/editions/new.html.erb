@@ -57,6 +57,22 @@
                 value: decimal_km_rate(@edition.km_rate_cents), inputmode: "decimal", data: { controller: "currency-input" } %>
         </div>
 
+        <div>
+          <%= f.label :transport_modes, "Modes de transport (un par ligne)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_area :transport_modes,
+                class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                value: @edition.transport_mode_options.join("\n"),
+                rows: 5 %>
+        </div>
+
+        <div>
+          <%= f.label :allowance_labels, "Libellés d'indemnité (un par ligne)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_area :allowance_labels,
+                class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                value: @edition.allowance_label_options.join("\n"),
+                rows: 5 %>
+        </div>
+
         <div class="pt-2">
           <%= f.submit "Créer l'édition",
                 class: "bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 cursor-pointer" %>

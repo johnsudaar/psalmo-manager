@@ -95,6 +95,36 @@
           <div id="field_error_km_rate_cents" class="text-red-600 text-sm mt-1"></div>
         </div>
 
+        <div>
+          <%= f.label :transport_modes, "Modes de transport (un par ligne)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_area :transport_modes,
+                class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                value: @edition.transport_mode_options.join("\n"),
+                rows: 5,
+                data: {
+                  controller: "autosave",
+                  action: "blur->autosave#save",
+                  autosave_url_value: edition_path(@edition),
+                  autosave_param_value: "edition[transport_modes]"
+                } %>
+          <div id="field_error_transport_modes" class="text-red-600 text-sm mt-1"></div>
+        </div>
+
+        <div>
+          <%= f.label :allowance_labels, "Libellés d'indemnité (un par ligne)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_area :allowance_labels,
+                class: "block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                value: @edition.allowance_label_options.join("\n"),
+                rows: 5,
+                data: {
+                  controller: "autosave",
+                  action: "blur->autosave#save",
+                  autosave_url_value: edition_path(@edition),
+                  autosave_param_value: "edition[allowance_labels]"
+                } %>
+          <div id="field_error_allowance_labels" class="text-red-600 text-sm mt-1"></div>
+        </div>
+
       </div>
     <% end %>
   </div>

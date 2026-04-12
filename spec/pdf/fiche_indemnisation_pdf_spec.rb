@@ -8,6 +8,7 @@ RSpec.describe FicheIndemnisationPdf do
     create(:staff_profile,
       person:                            person,
       edition:                           edition,
+      allowance_label:                   "Cachet",
       allowance_cents:                   20000,
       km_traveled:                       150,
       supplies_cost_cents:               4500,
@@ -48,6 +49,10 @@ RSpec.describe FicheIndemnisationPdf do
 
   it "includes the dossier number" do
     expect(pdf_text).to include(staff_profile.dossier_number.to_s)
+  end
+
+  it "includes the configured allowance label" do
+    expect(pdf_text).to include("Cachet")
   end
 
   it "includes the indemnités amount" do
