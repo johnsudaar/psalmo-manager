@@ -47,8 +47,10 @@ See `.plan/02-technical-stack.md#actor-pattern` for the canonical usage example.
 
 **Context inputs**:
 - `context.registration` — the `Registration` record
-- `context.workshop` — the target `Workshop` record
-- `context.time_slot` — the time slot being substituted (`:matin`, `:apres_midi`, `:journee`)
+- `context.workshop` — the target `Workshop` record (the new workshop to assign)
+
+> **Note**: the context key is `workshop:`, not `new_workshop:`. The controller
+> (`workshop_substitutions#create`) passes `workshop: new_ws`.
 
 **Context outputs** (on success):
 - `context.registration_workshop` — the newly created `RegistrationWorkshop`
@@ -56,7 +58,8 @@ See `.plan/02-technical-stack.md#actor-pattern` for the canonical usage example.
 **Logic**:
 1. Validate `workshop` belongs to the same edition as `registration`.
 2. Find any existing `RegistrationWorkshop` for `registration` whose workshop has the same
-   `time_slot`. Destroy it (whether `is_override` or not — manual substitution always wins).
+   `time_slot` as the target workshop. Destroy it (whether `is_override` or not — manual
+   substitution always wins).
 3. Create a new `RegistrationWorkshop` with `is_override: true`.
 4. `context.fail!` if the new record is invalid.
 
