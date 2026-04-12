@@ -34,6 +34,7 @@
 
   <%# Registrations %>
   <% @registrations.each do |registration| %>
+    <% original_workshops = Workshop.where(id: Array(registration.workshop_override_backup).map { |row| row["workshop_id"] || row[:workshop_id] }).index_by(&:id) %>
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
@@ -45,7 +46,7 @@
                   order_path(registration.order),
                   class: "text-sm font-medium text-indigo-600 hover:text-indigo-800" %>
             <%= link_to "Modifier les ateliers",
-                  new_workshop_substitution_path(registration_id: registration.id),
+                  edit_workshops_participant_path(@person, registration_id: registration.id),
                   class: "text-sm font-medium text-indigo-600 hover:text-indigo-800" %>
           </div>
         </div>
@@ -92,11 +93,46 @@
           <p class="text-xs text-gray-500 mb-2">Ateliers</p>
           <div class="flex flex-wrap gap-2">
             <% registration.registration_workshops.each do |rw| %>
-              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= rw.is_override ? 'bg-amber-50 text-amber-700' : 'bg-indigo-50 text-indigo-700' %>">
                 <%= rw.workshop.name %>
+                <% if rw.is_override %>
+                  <span class="ml-1">(changé)</span>
+                <% end %>
               </span>
             <% end %>
           </div>
+
+          <% if registration.has_workshop_override? %>
+            <% original_names = Array(registration.workshop_override_backup).filter_map do |row|
+                 workshop_id = row["workshop_id"] || row[:workshop_id]
+                 original_workshops[workshop_id]&.name
+               end %>
+            <div class="mt-3 flex items-center gap-3">
+              <p class="text-xs text-amber-700">Cette inscription a un changement d'atelier manuel.</p>
+              <%= button_to "Supprimer le changement",
+                    registration_workshop_override_participant_path(@person, registration_id: registration.id),
+                    method: :delete,
+                    class: "text-xs font-medium text-red-600 hover:text-red-800 bg-transparent border-0 p-0 cursor-pointer" %>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">Ateliers d'origine : <%= original_names.join(", ").presence || "aucun" %></p>
+          <% end %>
+        </div>
+      <% elsif registration.has_workshop_override? %>
+        <% original_names = Array(registration.workshop_override_backup).filter_map do |row|
+             workshop_id = row["workshop_id"] || row[:workshop_id]
+             original_workshops[workshop_id]&.name
+           end %>
+        <div class="mt-4">
+          <p class="text-xs text-gray-500 mb-2">Ateliers</p>
+          <p class="text-sm text-gray-500">Aucun atelier.</p>
+          <div class="mt-3 flex items-center gap-3">
+            <p class="text-xs text-amber-700">Cette inscription a un changement d'atelier manuel.</p>
+            <%= button_to "Supprimer le changement",
+                  registration_workshop_override_participant_path(@person, registration_id: registration.id),
+                  method: :delete,
+                  class: "text-xs font-medium text-red-600 hover:text-red-800 bg-transparent border-0 p-0 cursor-pointer" %>
+          </div>
+          <p class="mt-2 text-xs text-gray-500">Ateliers d'origine : <%= original_names.join(", ").presence || "aucun" %></p>
         </div>
       <% end %>
     </div>

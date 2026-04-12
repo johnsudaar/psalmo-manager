@@ -110,20 +110,28 @@ RSpec.describe Importers::ParticipantsCsvImporter do
         }.not_to change(Order, :count)
       end
 
-      it "does not overwrite is_override: true RegistrationWorkshops" do
+      it "does not overwrite workshop assignments when a manual override is active" do
         described_class.new(csv_path: csv_path, edition_id: edition.id).call
 
         reg      = Registration.find_by(helloasso_ticket_id: "BIL-001")
-        workshop = Workshop.find_by(edition: edition, name: "CIRQUE")
-        # Manually set an override
-        rw = reg.registration_workshops.find_by!(workshop: workshop)
-        rw.update!(is_override: true, price_paid_cents: 9999)
+        reg.registration_workshops.destroy_all
+        override_workshop = Workshop.find_by(edition: edition, name: "THÉATRE ENFANTS")
+        reg.registration_workshops.create!(workshop: override_workshop, price_paid_cents: 9999, is_override: true)
+        reg.update!(
+          has_workshop_override: true,
+          workshop_override_backup: [
+            { workshop_id: Workshop.find_by!(edition: edition, name: "CIRQUE").id, price_paid_cents: 5000 },
+            { workshop_id: Workshop.find_by!(edition: edition, name: "MARMITONS").id, price_paid_cents: 3000 }
+          ]
+        )
 
         # Run again
         described_class.new(csv_path: csv_path, edition_id: edition.id).call
 
-        expect(rw.reload.price_paid_cents).to eq(9999)
-        expect(rw.reload.is_override).to be(true)
+        reg.reload
+        expect(reg.registration_workshops.pluck(:workshop_id)).to eq([override_workshop.id])
+        expect(reg.registration_workshops.first.price_paid_cents).to eq(9999)
+        expect(reg.has_workshop_override).to be(true)
       end
     end
 

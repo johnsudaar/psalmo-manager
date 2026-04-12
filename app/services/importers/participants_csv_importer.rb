@@ -171,9 +171,7 @@ module Importers
     end
 
     def process_workshops(row, registration)
-      override_workshop_ids = registration.registration_workshops
-                                          .where(is_override: true)
-                                          .pluck(:workshop_id)
+      return if registration.has_workshop_override?
 
       workshop_columns(row.headers).each do |col|
         value = row[col].to_s.strip
@@ -182,8 +180,6 @@ module Importers
 
         price_cents = parse_cents(row["Montant #{col.strip}"].to_s.strip)
         workshop    = find_or_create_workshop(col.strip)
-
-        next if override_workshop_ids.include?(workshop.id)
 
         rw = registration.registration_workshops.find_or_initialize_by(workshop: workshop)
         rw.price_paid_cents = price_cents

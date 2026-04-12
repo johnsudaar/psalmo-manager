@@ -103,6 +103,8 @@ module Helloasso
     end
 
     def upsert_registration_workshops(registration, item_data)
+      return if registration.has_workshop_override?
+
       # Delete non-override rows; override rows are sticky (preservation contract)
       registration.registration_workshops.where(is_override: false).destroy_all
 

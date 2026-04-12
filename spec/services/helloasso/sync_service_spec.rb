@@ -95,22 +95,31 @@ RSpec.describe Helloasso::SyncService do
     end
 
     context "override-preservation contract" do
-      it "does not overwrite is_override: true RegistrationWorkshops" do
+      it "does not overwrite workshop assignments when a manual override is active" do
         sync.call
 
         lea_reg = Registration.joins(:person).where(people: { email: "lea.dupont@example.com" }).first
         # Simulate an admin-applied workshop substitution
         override_workshop = create(:workshop, edition: edition, name: "JONGLAGE", time_slot: :apres_midi)
+        lea_reg.registration_workshops.destroy_all
         override_rw = lea_reg.registration_workshops.create!(
           workshop: override_workshop,
           price_paid_cents: 0,
           is_override: true
         )
+        lea_reg.update!(
+          has_workshop_override: true,
+          workshop_override_backup: [
+            { workshop_id: Workshop.find_by!(edition: edition, name: "CIRQUE").id, price_paid_cents: 0 }
+          ]
+        )
 
         sync.call
 
-        # The override row must still exist
+        lea_reg.reload
         expect(RegistrationWorkshop.find_by(id: override_rw.id)).to be_present
+        expect(lea_reg.registration_workshops.pluck(:workshop_id)).to eq([override_workshop.id])
+        expect(lea_reg.has_workshop_override).to be(true)
       end
 
       it "does not overwrite excluded_from_stats" do

@@ -59,7 +59,7 @@ RSpec.describe "Participants", type: :system do
       click_on "Alice Dupont"
       click_on "Modifier les ateliers"
 
-      expect(page).to have_current_path(new_workshop_substitution_path(registration_id: registration.id))
+      expect(page).to have_current_path(edit_workshops_participant_path(person, registration_id: registration.id))
     end
   end
 

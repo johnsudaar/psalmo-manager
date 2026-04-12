@@ -1,4 +1,6 @@
 class ParticipantsController < ApplicationController
+  before_action :set_person, only: [ :show, :edit_workshops, :update_workshops, :destroy_workshop_override ]
+
   def index
     scope = Person
       .joins(:registrations)
@@ -44,9 +46,56 @@ class ParticipantsController < ApplicationController
   end
 
   def show
+    @registrations = edition_registrations
+  end
+
+  def edit_workshops
+    @registration = edition_registrations
+      .includes(registration_workshops: :workshop)
+      .find(params[:registration_id])
+    @workshops = current_edition.workshops.order(:time_slot, :name)
+  end
+
+  def update_workshops
+    registration = edition_registrations.find(params[:registration_id])
+
+    result = Actors::ApplyWorkshopSubstitution.call(
+      registration: registration,
+      workshop_ids: workshop_params[:workshop_ids]
+    )
+
+    if result.success?
+      redirect_to participant_path(@person), notice: "Ateliers mis à jour."
+    else
+      redirect_to edit_workshops_participant_path(@person, registration_id: registration.id), alert: result.error
+    end
+  end
+
+  def destroy_workshop_override
+    registration = edition_registrations.find(params[:registration_id])
+
+    result = Actors::RemoveWorkshopOverride.call(registration: registration)
+
+    unless result.success?
+      redirect_to participant_path(@person), alert: result.error and return
+    end
+
+    redirect_to participant_path(@person), notice: "Changement d'atelier supprimé."
+  end
+
+  private
+
+  def set_person
     @person = Person.find(params[:id])
-    @registrations = @person.registrations
+  end
+
+  def edition_registrations
+    @person.registrations
       .where(edition_id: current_edition.id)
       .includes(:order, registration_workshops: :workshop)
+  end
+
+  def workshop_params
+    params.permit(:registration_id, workshop_ids: [])
   end
 end

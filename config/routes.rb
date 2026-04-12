@@ -25,7 +25,13 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :participants, only: [ :index, :show ]
+  resources :participants, only: [ :index, :show ] do
+    member do
+      get :edit_workshops
+      patch :update_workshops
+      delete "registrations/:registration_id/workshop_override", action: :destroy_workshop_override, as: :registration_workshop_override
+    end
+  end
 
   resources :orders, only: [ :index, :show ]
 
@@ -36,8 +42,6 @@ Rails.application.routes.draw do
     resources :staff_advances, only: [ :create, :destroy ]
     resources :staff_payments, only: [ :create, :destroy ]
   end
-
-  resources :workshop_substitutions, only: [ :index, :new, :create ]
 
   scope :exports, as: :export, controller: :exports do
     get "/", action: :index, as: ""

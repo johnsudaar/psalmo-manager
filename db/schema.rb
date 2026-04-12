@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_12_190536) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_12_203000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -116,6 +116,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_12_190536) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "tariff_label"
+    t.boolean "has_workshop_override", default: false, null: false
+    t.jsonb "workshop_override_backup", default: [], null: false
     t.index ["edition_id"], name: "index_registrations_on_edition_id"
     t.index ["helloasso_ticket_id"], name: "index_registrations_on_helloasso_ticket_id", unique: true
     t.index ["order_id"], name: "index_registrations_on_order_id"
