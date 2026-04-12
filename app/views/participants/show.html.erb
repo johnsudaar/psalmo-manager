@@ -36,9 +36,19 @@
   <% @registrations.each do |registration| %>
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div class="flex items-start justify-between mb-4">
-        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-          Inscription — commande #<%= registration.order.helloasso_order_id %>
-        </h2>
+        <div>
+          <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+            Inscription — commande #<%= registration.order.helloasso_order_id %>
+          </h2>
+          <div class="mt-2 flex gap-3">
+            <%= link_to "Ouvrir la commande",
+                  order_path(registration.order),
+                  class: "text-sm font-medium text-indigo-600 hover:text-indigo-800" %>
+            <%= link_to "Modifier les ateliers",
+                  new_workshop_substitution_path(registration_id: registration.id),
+                  class: "text-sm font-medium text-indigo-600 hover:text-indigo-800" %>
+          </div>
+        </div>
         <div class="flex gap-2">
           <% if registration.is_unaccompanied_minor %>
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Mineur non accompagné</span>

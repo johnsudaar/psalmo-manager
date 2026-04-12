@@ -47,6 +47,6 @@ class ParticipantsController < ApplicationController
     @person = Person.find(params[:id])
     @registrations = @person.registrations
       .where(edition_id: current_edition.id)
-      .includes(registration_workshops: :workshop)
+      .includes(:order, registration_workshops: :workshop)
   end
 end

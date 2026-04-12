@@ -47,6 +47,20 @@ RSpec.describe "Participants", type: :system do
     it "shows the age category" do
       expect(page).to have_text("adulte")
     end
+
+    it "links to the order from the participant page" do
+      click_on "Alice Dupont"
+      click_on "Ouvrir la commande"
+
+      expect(page).to have_current_path(order_path(order))
+    end
+
+    it "links to workshop substitution from the participant page" do
+      click_on "Alice Dupont"
+      click_on "Modifier les ateliers"
+
+      expect(page).to have_current_path(new_workshop_substitution_path(registration_id: registration.id))
+    end
   end
 
   # ---------------------------------------------------------------------------
