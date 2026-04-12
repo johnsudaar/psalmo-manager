@@ -50,7 +50,7 @@ RSpec.describe "Staff profile", type: :system do
     it "adds the advance and shows it in the advances section" do
       within "turbo-frame#staff_advances" do
         fill_in "Date",               with: "2026-03-15"
-        fill_in "Montant (centimes)", with: "5000"
+        fill_in "Montant (€)",         with: "50,00"
         fill_in "Commentaire",        with: "Acompte test"
         click_button "Ajouter"
       end

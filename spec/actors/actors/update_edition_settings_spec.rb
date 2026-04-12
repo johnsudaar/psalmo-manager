@@ -11,7 +11,7 @@ RSpec.describe Actors::UpdateEditionSettings do
     end
 
     it "updates km_rate_cents" do
-      result = described_class.call(edition: edition, field: "km_rate_cents", value: "40")
+      result = described_class.call(edition: edition, field: "km_rate_cents", value: "0,40")
       expect(result).to be_success
       expect(edition.reload.km_rate_cents).to eq(40)
     end

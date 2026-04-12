@@ -50,11 +50,12 @@
                 class: "border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" %>
         </div>
         <div>
-          <%= f.label :amount_cents, "Montant (centimes)", class: "block text-xs text-gray-600 mb-1" %>
-          <%= f.number_field :amount_cents,
+          <%= f.label :amount_cents, "Montant (€)", class: "block text-xs text-gray-600 mb-1" %>
+          <%= f.text_field :amount_cents,
                 name: "staff_payment[amount_cents]",
                 class: "border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500",
-                min: 0 %>
+                inputmode: "decimal",
+                data: { controller: "currency-input" } %>
         </div>
         <div>
           <%= f.label :comment, "Commentaire", class: "block text-xs text-gray-600 mb-1" %>

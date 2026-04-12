@@ -27,7 +27,7 @@ module Actors
       if field == "km_rate_override_cents" && value.to_s.strip.empty?
         value = nil
       elsif CENTS_FIELDS.include?(field)
-        value = value.to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f.round
+        value = (value.to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f * 100).round
       end
 
       unless staff_profile.update(field => value)

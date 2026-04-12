@@ -15,6 +15,10 @@ module Actors
         context.fail!(error: "Champ non autorisé")
       end
 
+      if field == "km_rate_cents"
+        value = (value.to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f * 100).round
+      end
+
       unless edition.update(field => value)
         context.fail!(error: edition.errors.full_messages.join(", "))
       end

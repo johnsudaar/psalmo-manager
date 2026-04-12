@@ -8,7 +8,7 @@ RSpec.describe Actors::AddStaffAdvance do
       described_class.call(
         staff_profile: staff_profile,
         date:          "2026-06-15",
-        amount_cents:  5000,
+        amount_cents:  "50,00",
         comment:       "Acompte initial"
       )
     end
@@ -33,7 +33,7 @@ RSpec.describe Actors::AddStaffAdvance do
 
   context "when validation fails (missing date)" do
     subject(:result) do
-      described_class.call(staff_profile: staff_profile, date: nil, amount_cents: 5000)
+      described_class.call(staff_profile: staff_profile, date: nil, amount_cents: "50,00")
     end
 
     it "fails" do
@@ -65,7 +65,7 @@ RSpec.describe Actors::AddStaffPayment do
     described_class.call(
       staff_profile: staff_profile,
       date:          "2026-07-01",
-      amount_cents:  20000,
+      amount_cents:  "200,00",
       comment:       "Virement"
     )
   end

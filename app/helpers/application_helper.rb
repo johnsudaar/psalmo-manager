@@ -6,6 +6,18 @@ module ApplicationHelper
     "#{format('%.2f', cents / 100.0).gsub('.', ',')} €"
   end
 
+  def decimal_euros(cents)
+    return nil if cents.nil?
+
+    format('%.2f', cents / 100.0).gsub('.', ',')
+  end
+
+  def decimal_km_rate(cents)
+    return nil if cents.nil?
+
+    format('%.2f', cents / 100.0).gsub('.', ',')
+  end
+
   def format_date(date)
     return "—" if date.nil?
     date.strftime("%d/%m/%Y")

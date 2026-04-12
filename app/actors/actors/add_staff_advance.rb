@@ -4,10 +4,11 @@ module Actors
 
     def call
       staff_profile = context.staff_profile
+      amount_cents  = (context.amount_cents.to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f * 100).round
 
       advance = staff_profile.staff_advances.build(
         date:         context.date,
-        amount_cents: context.amount_cents.to_i,
+        amount_cents: amount_cents,
         comment:      context.comment
       )
 

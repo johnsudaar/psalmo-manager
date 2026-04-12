@@ -98,7 +98,7 @@ RSpec.describe "StaffProfiles", type: :request do
       staff_profile = create(:staff_profile, edition: edition, allowance_cents: 20_000)
 
       patch staff_profile_path(staff_profile),
-            params: { staff_profile: { allowance_cents: "23456" } },
+            params: { staff_profile: { allowance_cents: "234,56" } },
             headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
 
       expect(response).to have_http_status(:ok)
@@ -115,6 +115,17 @@ RSpec.describe "StaffProfiles", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(staff_profile.reload.km_rate_override_cents).to be_nil
+    end
+
+    it "accepts decimal euros for the km rate override" do
+      staff_profile = create(:staff_profile, edition: edition, km_rate_override_cents: nil)
+
+      patch staff_profile_path(staff_profile),
+            params: { staff_profile: { km_rate_override_cents: "0,41" } },
+            headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:ok)
+      expect(staff_profile.reload.km_rate_override_cents).to eq(41)
     end
   end
 end

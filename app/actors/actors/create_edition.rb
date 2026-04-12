@@ -3,7 +3,13 @@ module Actors
     include Interactor
 
     def call
-      edition = Edition.new(context.edition_params)
+      edition_params = context.edition_params.to_h
+
+      if edition_params["km_rate_cents"].present?
+        edition_params["km_rate_cents"] = (edition_params["km_rate_cents"].to_s.gsub(/[€\s]/, "").gsub(",", ".").to_f * 100).round
+      end
+
+      edition = Edition.new(edition_params)
 
       unless edition.save
         context.fail!(error: edition.errors.full_messages.join(", "))

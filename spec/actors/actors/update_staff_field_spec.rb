@@ -4,10 +4,19 @@ RSpec.describe Actors::UpdateStaffField do
   let(:staff_profile) { create(:staff_profile) }
 
   context "with an allowed field" do
-    it "updates a cents field" do
-      result = described_class.call(staff_profile: staff_profile, field: "allowance_cents", value: "150")
+    it "updates a cents field from a human decimal euro value" do
+      result = described_class.call(staff_profile: staff_profile, field: "allowance_cents", value: "150,00")
       expect(result).to be_success
-      expect(staff_profile.reload.allowance_cents).to eq(150)
+      expect(staff_profile.reload.allowance_cents).to eq(15_000)
+    end
+
+    it "clears the km rate override when submitted blank" do
+      staff_profile.update!(km_rate_override_cents: 41)
+
+      result = described_class.call(staff_profile: staff_profile, field: "km_rate_override_cents", value: "")
+
+      expect(result).to be_success
+      expect(staff_profile.reload.km_rate_override_cents).to be_nil
     end
 
     it "updates a string field" do
