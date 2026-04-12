@@ -17,23 +17,23 @@ RSpec.describe Importers::ParticipantsCsvImporter do
 
     it "creates person records for participants" do
       result
-      expect(Person.find_by(email: "lea.dupont@example.com")).to be_present
-      expect(Person.find_by(email: "marie.dupont@example.com")).to be_present
-      expect(Person.find_by(email: "paul.martin@example.com")).to be_present
+      expect(Person.find_by(first_name: "Alice", last_name: "Testenfant")).to be_present
+      expect(Person.find_by(first_name: "Carol", last_name: "Testadulte")).to be_present
+      expect(Person.find_by(first_name: "Dave",  last_name: "Testmineur")).to be_present
     end
 
     it "creates a separate payer person when payer differs from participant" do
       result
-      # BIL-003: participant = Paul Martin, payer = Claire Martin
-      expect(Person.find_by(email: "claire.martin@example.com")).to be_present
+      # BIL-003: participant = Dave Testmineur, payer = Eve Testautre
+      expect(Person.find_by(email: "eve.testautre@example.test")).to be_present
     end
 
     it "reuses the same person record when payer == participant" do
       result
-      # BIL-001 and BIL-004: payer email = participant email
-      lea = Person.find_by(email: "lea.dupont@example.com")
-      order = Order.find_by(helloasso_order_id: "CMD-001")
-      expect(order.payer_id).to eq(lea.id)
+      # BIL-004: participant Frank Testsansdob is also the payer
+      frank = Person.find_by(email: "frank.testsansdob@example.test")
+      order = Order.find_by(helloasso_order_id: "CMD-003")
+      expect(order.payer_id).to eq(frank.id)
     end
 
     it "creates one Order per Référence commande" do
@@ -50,14 +50,14 @@ RSpec.describe Importers::ParticipantsCsvImporter do
 
     it "infers enfant age_category from date_of_birth" do
       result
-      # Léa born 15/08/2010 → 15 years old in 2026 → enfant
+      # Alice born 15/08/2015 → 10 years old at start of 2026 edition → enfant
       reg = Registration.find_by(helloasso_ticket_id: "BIL-001")
       expect(reg.age_category).to eq("enfant")
     end
 
     it "infers adulte age_category from date_of_birth" do
       result
-      # Marie born 20/03/1985 → 41 years old in 2026 → adulte
+      # Carol born 20/03/1985 → 41 years old → adulte
       reg = Registration.find_by(helloasso_ticket_id: "BIL-002")
       expect(reg.age_category).to eq("adulte")
     end
@@ -85,8 +85,8 @@ RSpec.describe Importers::ParticipantsCsvImporter do
 
     it "stores date_of_birth on the person" do
       result
-      lea = Person.find_by(email: "lea.dupont@example.com")
-      expect(lea.date_of_birth).to eq(Date.new(2010, 8, 15))
+      alice = Person.find_by(first_name: "Alice", last_name: "Testenfant")
+      expect(alice.date_of_birth).to eq(Date.new(2015, 8, 15))
     end
 
     context "idempotency" do
@@ -123,11 +123,10 @@ RSpec.describe Importers::ParticipantsCsvImporter do
 
     context "when a row raises an error" do
       it "collects the error and continues" do
-        # Use a CSV with one invalid row (missing ticket_id handled via blank ticket)
         csv = Tempfile.new([ "bad", ".csv" ])
-        csv.write("Numéro de billet,Référence commande,Nom,Prénom,Téléphone,E-mail,Date de naissance,Tarif,Réduction,Tarif réel,Date de la commande,Nom payeur,Prénom payeur,E-mail payeur,Téléphone payeur,Code promo,Montant de la réduction,CIRQUE\n")
-        csv.write(",CMD-BAD,,,,,,,,,,,,,,,0,50\n")  # blank ticket id → validation error
-        csv.write("BIL-VALID,CMD-OK,Test,User,,test@example.com,,80,0,80,10/06/2026 10:00,Test,User,test@example.com,,, 0,50\n")
+        csv.write("Référence commande,Date de la commande,Statut de la commande,Nom participant,Prénom participant,Nom payeur,Prénom payeur,Email payeur,Raison sociale,Moyen de paiement,Billet,Numéro de billet,Tarif,Montant tarif,Code Promo,Montant code promo,CIRQUE,Montant CIRQUE\n")
+        csv.write(",10/06/2026 10:00,Validé,,,Test,Payeur,payeur@example.test,,,,, Enfant,\"80,00\",,,Oui,\"50,00\"\n") # blank ticket id → validation error
+        csv.write("CMD-OK,10/06/2026 10:00,Validé,Test,Valid,Test,Valid,valid@example.test,,,, BIL-VALID,Enfant,\"80,00\",,,Oui,\"50,00\"\n")
         csv.close
 
         result = described_class.new(csv_path: csv.path, edition_id: edition.id).call

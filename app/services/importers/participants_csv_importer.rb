@@ -2,30 +2,30 @@ require "csv"
 
 module Importers
   class ParticipantsCsvImporter
-    # Columns that are NOT workshop columns
+    # All non-workshop columns in the HelloAsso export format
     KNOWN_COLUMNS = %w[
-      Numéro\ de\ billet
       Référence\ commande
-      Nom
-      Prénom
-      Téléphone
-      E-mail
-      Date\ de\ naissance
-      Tarif
-      Réduction
-      Tarif\ réel
       Date\ de\ la\ commande
+      Statut\ de\ la\ commande
+      Nom\ participant
+      Prénom\ participant
       Nom\ payeur
       Prénom\ payeur
-      E-mail\ payeur
-      Téléphone\ payeur
-      Code\ promo
-      Montant\ de\ la\ réduction
-      Inscription\ Semaine
-      Age
-      Age\ 10aine
+      Email\ payeur
+      Raison\ sociale
+      Moyen\ de\ paiement
+      Billet
+      Numéro\ de\ billet
+      Tarif
+      Montant\ tarif
+      Code\ Promo
+      Montant\ code\ promo
+      Date\ de\ naissance
+      Adresse\ postale\ complète\ (rue,\ ville,\ pays)
+      N°\ de\ téléphone
     ].freeze
 
+    # Columns that are "Montant X" companions to workshop columns — also not workshops
     def initialize(csv_path:, edition_id:)
       @csv_path   = csv_path
       @edition_id = edition_id
@@ -38,6 +38,8 @@ module Importers
 
     def call
       CSV.foreach(@csv_path, headers: true, encoding: "bom|utf-8") do |row|
+        # Skip cancelled/pending orders
+        next if row["Statut de la commande"].to_s.strip != "Validé"
         process_row(row)
       rescue => e
         @errors << "Row #{$.}: #{e.message}"
@@ -47,24 +49,21 @@ module Importers
 
     private
 
+    # Workshop columns: not in KNOWN_COLUMNS and not a "Montant X" companion
     def workshop_columns(headers)
-      headers.reject { |h| KNOWN_COLUMNS.include?(h.to_s.strip) }
+      headers.reject do |h|
+        h = h.to_s.strip
+        KNOWN_COLUMNS.include?(h) || h.start_with?("Montant ")
+      end
     end
 
     def process_row(row)
       ticket_id = row["Numéro de billet"].to_s.strip
       order_ref = row["Référence commande"].to_s.strip
 
-      # Find or create participant person
       participant = find_or_create_participant(row)
-
-      # Find or create payer person (may be same as participant)
-      payer = find_or_create_payer(row, participant)
-
-      # Find or create order
-      order = find_or_create_order(row, order_ref, payer)
-
-      # Find or create registration
+      payer       = find_or_create_payer(row, participant)
+      order       = find_or_create_order(row, order_ref, payer)
       reg, created = find_or_create_registration(row, ticket_id, order, participant)
 
       if created
@@ -73,29 +72,21 @@ module Importers
         @updated += 1
       end
 
-      # Process workshop columns (only for newly created or existing without overrides)
       process_workshops(row, reg)
     end
 
     def find_or_create_participant(row)
-      last_name  = row["Nom"].to_s.strip
-      first_name = row["Prénom"].to_s.strip
-      email      = row["E-mail"].to_s.strip.presence
-      phone      = row["Téléphone"].to_s.strip.presence
+      last_name  = row["Nom participant"].to_s.strip
+      first_name = row["Prénom participant"].to_s.strip
+      phone      = row["N° de téléphone"].to_s.strip.presence
       dob_str    = row["Date de naissance"].to_s.strip.presence
       dob        = dob_str ? parse_date(dob_str) : nil
 
-      # Match by email if present, otherwise name
-      person = if email.present?
-        Person.find_or_initialize_by(email: email)
-      else
-        Person.find_or_initialize_by(first_name: first_name, last_name: last_name)
-      end
-
-      person.last_name    = last_name
-      person.first_name   = first_name
-      person.email        = email if email.present?
-      person.phone        = phone if phone.present?
+      # No participant email in this export format — match by name
+      person = Person.find_or_initialize_by(first_name: first_name, last_name: last_name)
+      person.last_name     = last_name
+      person.first_name    = first_name
+      person.phone         = phone if phone.present?
       person.date_of_birth = dob if dob
       person.save!
       person
@@ -104,14 +95,12 @@ module Importers
     def find_or_create_payer(row, participant)
       payer_last  = row["Nom payeur"].to_s.strip
       payer_first = row["Prénom payeur"].to_s.strip
-      payer_email = row["E-mail payeur"].to_s.strip.presence
-      payer_phone = row["Téléphone payeur"].to_s.strip.presence
+      payer_email = row["Email payeur"].to_s.strip.presence
 
-      # Check if payer == participant
-      same_name  = payer_last.casecmp?(participant.last_name) && payer_first.casecmp?(participant.first_name)
-      same_email = payer_email.blank? || payer_email == participant.email
+      same_name = payer_last.casecmp?(participant.last_name) &&
+                  payer_first.casecmp?(participant.first_name)
 
-      return participant if same_name && same_email
+      return participant if same_name && payer_email.blank?
 
       payer = if payer_email.present?
         Person.find_or_initialize_by(email: payer_email)
@@ -122,18 +111,16 @@ module Importers
       payer.last_name  = payer_last  if payer_last.present?
       payer.first_name = payer_first if payer_first.present?
       payer.email      = payer_email if payer_email.present?
-      payer.phone      = payer_phone if payer_phone.present?
       payer.save!
       payer
     end
 
     def find_or_create_order(row, order_ref, payer)
       order_date_str   = row["Date de la commande"].to_s.strip
-      promo_code       = row["Code promo"].to_s.strip.presence
-      promo_amount_str = row["Montant de la réduction"].to_s.strip
+      promo_code       = row["Code Promo"].to_s.strip.presence
+      promo_amount_str = row["Montant code promo"].to_s.strip
 
       order = Order.find_or_initialize_by(helloasso_order_id: order_ref)
-
       order.edition_id         = @edition.id
       order.payer_id           = payer.id
       order.order_date         = parse_datetime(order_date_str) if order_date_str.present?
@@ -145,11 +132,11 @@ module Importers
     end
 
     def find_or_create_registration(row, ticket_id, order, participant)
-      dob_str       = row["Date de naissance"].to_s.strip.presence
-      dob           = dob_str ? parse_date(dob_str) : nil
-      age_cat       = Registration.age_category_for(dob, @edition.start_date)
-      ticket_price  = parse_cents(row["Tarif"].to_s.strip)
-      discount      = parse_cents(row["Réduction"].to_s.strip)
+      dob_str      = row["Date de naissance"].to_s.strip.presence
+      dob          = dob_str ? parse_date(dob_str) : nil
+      age_cat      = Registration.age_category_for(dob, @edition.start_date)
+      ticket_price = parse_cents(row["Montant tarif"].to_s.strip)
+      discount     = parse_cents(row["Montant code promo"].to_s.strip)
 
       existing = Registration.find_by(helloasso_ticket_id: ticket_id)
       created  = existing.nil?
@@ -166,19 +153,18 @@ module Importers
     end
 
     def process_workshops(row, registration)
-      # Skip workshop columns that already have is_override: true records
       override_workshop_ids = registration.registration_workshops
                                           .where(is_override: true)
                                           .pluck(:workshop_id)
 
       workshop_columns(row.headers).each do |col|
         value = row[col].to_s.strip
-        next if value.blank? || value == "0"
+        # Workshop column contains "Oui" when enrolled
+        next unless value.casecmp?("oui")
 
-        price_cents = parse_cents(value)
+        price_cents = parse_cents(row["Montant #{col.strip}"].to_s.strip)
         workshop    = find_or_create_workshop(col.strip)
 
-        # Don't touch overridden workshops
         next if override_workshop_ids.include?(workshop.id)
 
         rw = registration.registration_workshops.find_or_initialize_by(workshop: workshop)
@@ -192,19 +178,31 @@ module Importers
       normalized = name.strip
       @workshop_cache[normalized] ||=
         Workshop.find_or_create_by!(edition: @edition, name: normalized) do |w|
-          w.time_slot               = :matin  # default; admin can update later
-          w.helloasso_column_name   = normalized
+          w.time_slot             = infer_time_slot(normalized)
+          w.helloasso_column_name = normalized
         end
     end
 
+    # Infer time_slot from workshop name conventions in the CSV headers
+    def infer_time_slot(name)
+      n = name.downcase
+      return :journee if n.include?("journée") || n.include?("journee")
+      return :apres_midi if n.include?("après midi") || n.include?("apres midi") || n.include?("après-midi")
+      :matin
+    end
+
     def parse_date(str)
+      # Try D/M/YYYY and DD/MM/YYYY
       Date.strptime(str, "%d/%m/%Y")
     rescue ArgumentError, TypeError
-      nil
+      begin
+        Date.strptime(str, "%-d/%-m/%Y")
+      rescue
+        nil
+      end
     end
 
     def parse_datetime(str)
-      # Supports "DD/MM/YYYY HH:MM" and "DD/MM/YYYY"
       if str.include?(" ")
         DateTime.strptime(str, "%d/%m/%Y %H:%M")
       else
@@ -216,7 +214,6 @@ module Importers
 
     def parse_cents(str)
       return 0 if str.blank?
-      # Strip currency symbols, spaces; normalise comma → dot
       cleaned = str.to_s.gsub(/[€\s]/, "").gsub(",", ".")
       (cleaned.to_f * 100).round
     end
