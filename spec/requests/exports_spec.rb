@@ -129,6 +129,13 @@ RSpec.describe "Exports", type: :request do
       get export_staff_summary_path
       expect(response.body).to include(person.last_name)
     end
+
+    it "renders direct-entry staff profiles without a linked person" do
+      create(:staff_profile, person: nil, edition: edition, first_name: "Marie", last_name: "Dupont")
+      get export_staff_summary_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Dupont")
+    end
   end
 
   # ---------------------------------------------------------------------------

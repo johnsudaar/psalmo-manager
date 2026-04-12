@@ -5,7 +5,7 @@ class StaffProfilesController < ApplicationController
     @staff_profiles = current_edition.staff_profiles
       .left_joins(:person)
       .includes(:person)
-      .order("COALESCE(people.last_name, staff_profiles.last_name)")
+      .order(Arel.sql("COALESCE(people.last_name, staff_profiles.last_name)"))
   end
 
   def new

@@ -80,8 +80,8 @@ class ExportsController < ApplicationController
       profiles.each do |sp|
         csv << [
           sp.dossier_number,
-          sp.person.last_name,
-          sp.person.first_name,
+          sp.person&.last_name || sp.last_name,
+          sp.person&.first_name || sp.first_name,
           cents_to_euros(sp.allowance_cents),
           cents_to_euros(sp.travel_allowance_cents),
           cents_to_euros(sp.supplies_cost_cents),

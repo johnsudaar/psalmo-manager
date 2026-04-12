@@ -5,6 +5,7 @@ module Actors
     def call
       profile = StaffProfile.new(context.staff_profile_params || {})
       profile.edition = context.edition
+      context.staff_profile = profile
 
       # Support two creation modes:
       # 1. Linked to an existing Person (person_id provided via context or params)
@@ -16,8 +17,6 @@ module Actors
       unless profile.save
         context.fail!(error: profile.errors.full_messages.join(", "))
       end
-
-      context.staff_profile = profile
     end
   end
 end
