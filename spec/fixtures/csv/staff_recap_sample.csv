@@ -1,0 +1,4 @@
+Identifiant,Nom,Prénom,Mode de déplacement,KM Parcourus,Indemnités,Frais de déplacement,Frais fournitures atelier,Total (frais à payer),Hébergement (pris en charge),Repas (pris en charge),Billets/Ateliers (pris en charge),Total (animateur pris en charge),Hébergement non pris en charge,Repas non pris en charge,Billets non pris en charge,Total membres à payer,Billets membres pris en charge,Total membres pris en charge,À payer à l'animateur,Montant reçu de l'animateur,Solde,Coût animateur,Nom indemnité,Commentaires
+001_,Durand,Alice,Voiture,120,50,39.6,30,,200,80,60,,0,0,0,,0,,,,,,Indemnité cirque,RAS
+002_,Bernard,Marc,Train,0,0,0,15,,150,60,40,,20,10,0,,0,,,,,,Indemnité théâtre,
+003_,Petit,Sophie,Voiture,80,0,26.4,0,,100,40,0,,0,0,20,,10,,,,,,,
