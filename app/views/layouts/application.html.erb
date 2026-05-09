@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <title><%= content_for(:title) || "Psalmo Manager" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "Chart.bundle", "data-turbo-track": "reload", defer: true %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="bg-gray-100 min-h-screen">
+    <div class="flex min-h-screen">
+      <%= render "layouts/sidebar" %>
+
+      <div class="flex-1 flex flex-col min-w-0">
+        <%= render "layouts/flash" %>
+        <main class="flex-1 p-6">
+          <%= yield %>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

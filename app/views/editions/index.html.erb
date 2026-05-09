@@ -1,0 +1,40 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Éditions</h1>
+  <%= link_to "Nouvelle édition", new_edition_path,
+        class: "bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700" %>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Nom</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Année</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Début</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Fin</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Taux km</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      <% @editions.each_with_index do |edition, i| %>
+        <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
+          <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= edition.name %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= edition.year %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= edition.start_date&.strftime("%d/%m/%Y") %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= edition.end_date&.strftime("%d/%m/%Y") %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= format_euros(edition.km_rate_cents) %>/km</td>
+          <td class="px-6 py-4 text-sm">
+            <%= link_to "Modifier", edit_edition_path(edition),
+                  class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @editions.empty? %>
+        <tr>
+          <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">Aucune édition.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
