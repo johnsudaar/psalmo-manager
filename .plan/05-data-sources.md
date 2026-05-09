@@ -32,31 +32,35 @@ and do not need to be imported — the Rails app re-generates equivalent views.
 
 ### `DONNES_BRUTES` Column Structure
 
-This tab is a raw HelloAsso export. Each row = one ticket (billet). Key columns:
+This tab is a raw HelloAsso export. Each row = one ticket (billet). The real export format used by
+the importer differs slightly from the original draft below. The actual important columns are:
 
 | Column header | Maps to | Notes |
 |---|---|---|
 | `Numéro de billet` | `registrations.helloasso_ticket_id` | Unique per row |
 | `Référence commande` | `orders.helloasso_order_id` | Multiple rows may share this |
-| `Nom` | `people.last_name` | Participant |
-| `Prénom` | `people.first_name` | Participant |
-| `Téléphone` | `people.phone` | |
-| `E-mail` | `people.email` | |
+| `Nom participant` | `people.last_name` | Participant |
+| `Prénom participant` | `people.first_name` | Participant |
+| `N° de téléphone` | `people.phone` | participant phone |
+| `Email payeur` | payer email | no participant email column in the real export |
 | `Date de naissance` | `people.date_of_birth` | Format: DD/MM/YYYY |
-| `Tarif` | `registrations.ticket_price_cents` | In euros, convert × 100 |
-| `Réduction` | `registrations.discount_cents` | In euros, convert × 100 |
-| `Tarif réel` | `registrations.actual_price_cents` | In euros, convert × 100 |
+| `Montant tarif` | `registrations.ticket_price_cents` | In euros, convert × 100 |
+| `Montant code promo` | `registrations.discount_cents` | In euros, convert × 100 |
 | `Date de la commande` | `orders.order_date` | Format: DD/MM/YYYY HH:MM |
 | `Nom payeur` | payer last name | May differ from participant |
 | `Prénom payeur` | payer first name | |
-| `E-mail payeur` | payer email | |
+| `Email payeur` | payer email | |
 | `Téléphone payeur` | payer phone | |
 | `Code promo` | `orders.promo_code` | |
-| `Montant de la réduction` | `orders.promo_amount_cents` | In euros, convert × 100 |
+| `Montant code promo` | `orders.promo_amount_cents` | In euros, convert × 100 at order level when relevant |
+| `Statut de la commande` | import guard | only rows with value `Validé` are imported |
 
-**Workshop columns** (boolean-style, one per workshop): columns like `CIRQUE`, `THÉATRE ENFANTS`,
-`MARMITONS`, etc. Each contains either a price (e.g. `"50"`) or empty/`"0"` if not enrolled.
-There are up to ~35 such columns.
+**Workshop columns** in the real export use a pair of columns per workshop:
+- `WORKSHOP_NAME` = `Oui` when selected
+- `Montant WORKSHOP_NAME` = price paid for that workshop
+
+The importer should create a `registration_workshop` when the workshop column value is `Oui`, and
+read the paid amount from the corresponding `Montant ...` column.
 
 **Derived columns in DONNES_BRUTES_FILTREES** (can be ignored — the app recomputes what it needs):
 - `Age` — integer age at time of camp
@@ -149,6 +153,26 @@ Usage:
 rails import:participants[/path/to/donnes_brutes.csv,1]
 ```
 
+Current Docker command:
+```bash
+docker compose exec app bundle exec rails "import:participants[/rails/import.csv,497]"
+```
+
+Testing/data hygiene notes:
+- Fixture CSV files must use fictional names and `.example.test` email addresses only.
+- When generating fixture CSV files with Ruby, prefer `CSV.open` to avoid quoting issues with
+  headers and values containing commas.
+- Do not commit `/rails/import.csv` or any ad-hoc root-level CSV file.
+
+Test DB safety notes:
+- Run imports and seeds with `docker compose exec app ...` (development env).
+- Run tests with `docker compose exec -e RAILS_ENV=test app ...` only.
+- If the test DB is polluted, reset it with:
+
+```bash
+docker compose exec -e RAILS_ENV=test app bundle exec rails db:schema:load
+```
+
 ---
 
 ### Service Object Structure
@@ -158,10 +182,10 @@ rails import:participants[/path/to/donnes_brutes.csv,1]
 module Importers
   class ParticipantsCsvImporter
     WORKSHOP_COLUMN_BLACKLIST = %w[
-      Numéro\ de\ billet Référence\ commande Nom Prénom Téléphone E-mail
-      Date\ de\ naissance Tarif Réduction Tarif\ réel Date\ de\ la\ commande
-      Nom\ payeur Prénom\ payeur E-mail\ payeur Téléphone\ payeur
-      Code\ promo Montant\ de\ la\ réduction Inscription\ Semaine Age Age\ 10aine
+      Numéro\ de\ billet Référence\ commande Nom\ participant Prénom\ participant
+      N°\ de\ téléphone Date\ de\ naissance Date\ de\ la\ commande
+      Nom\ payeur Prénom\ payeur Email\ payeur Téléphone\ payeur
+      Code\ promo Montant\ code\ promo Statut\ de\ la\ commande
     ].freeze
 
     def initialize(csv_path:, edition_id:)

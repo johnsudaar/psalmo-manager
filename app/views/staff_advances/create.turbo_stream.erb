@@ -1,0 +1,6 @@
+<%= turbo_stream.replace "staff_advances" do %>
+  <%= render "staff_profiles/staff_advances", staff_profile: @staff_profile %>
+<% end %>
+<%= turbo_stream.replace "financial_summary" do %>
+  <%= render "staff_profiles/financial_summary", staff_profile: @staff_profile %>
+<% end %>

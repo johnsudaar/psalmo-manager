@@ -38,7 +38,7 @@ Psalmodia association for a given edition.
 │  FICHE D'INDEMNISATION ANIMATEUR(S)              │
 │                                                  │
 │  Numéro de Dossier : {dossier_number}            │
-│  Nom : {last_name}    Prénom : {first_name}      │
+│  Nom : {full_name}                               │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -193,11 +193,10 @@ Right-aligned, size 8, gray.
 class FicheIndemnisationPdf
   include Prawn::View
 
-  def initialize(staff_profile)
-    @sp      = staff_profile
-    @person  = staff_profile.person
-    @edition = staff_profile.edition
-    @document = Prawn::Document.new(
+   def initialize(staff_profile)
+     @sp      = staff_profile
+     @edition = staff_profile.edition
+     @document = Prawn::Document.new(
       page_size:   "A4",
       page_layout: :portrait,
       margin:      [20.mm, 20.mm, 20.mm, 20.mm]
@@ -264,11 +263,14 @@ def fiche
   pdf = FicheIndemnisationPdf.new(@staff_profile).render
 
   send_data pdf,
-            filename:    "fiche_#{@staff_profile.dossier_number}_#{@staff_profile.person.last_name}.pdf",
+            filename:    "fiche_#{@staff_profile.dossier_number}_#{@staff_profile.full_name.gsub(' ', '_')}.pdf",
             type:        "application/pdf",
             disposition: "inline"
 end
 ```
+
+The PDF must render whether the staff profile is linked to a `Person` or uses direct-entry fields
+on `staff_profiles`. Name rendering and filename generation should use `staff_profile.full_name`.
 
 ---
 
