@@ -124,6 +124,11 @@ No creation from the UI (participants arrive via HelloAsso or CSV import).
 
 Filters: date range, status, promo code.
 
+Implementation notes:
+- `orders#index` must eager-load `:payer`, not `:person` (`Order` belongs_to `:payer`).
+- The order detail page is the family/group checkout view: payer info + all registrations in that
+  order + their workshops.
+
 ---
 
 ### Workshops (Ateliers)
@@ -178,6 +183,12 @@ A dedicated page for reassigning a participant from one workshop to another.
 | `GET /staff_profiles/:id/edit` | `staff_profiles#edit` | Edit form |
 | `PATCH /staff_profiles/:id` | `staff_profiles#update` | Update profile |
 | `GET /staff_profiles/:id/fiche.pdf` | `staff_profiles#fiche` | Generate + stream PDF |
+
+Creation flow:
+- The new staff profile form supports two modes:
+  1. link to an existing `Person`
+  2. direct entry on the staff profile itself (`first_name`, `last_name`, optional `email`, `phone`)
+- The show page and PDF must display the resolved staff name even when no `Person` is linked.
 
 **Show page layout**:
 ```

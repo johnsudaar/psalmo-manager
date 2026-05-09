@@ -1,0 +1,53 @@
+{
+  "data": [
+    {
+      "id": "order-abc-001",
+      "date": "2026-03-15T10:30:00Z",
+      "formSlug": "psalmodia-2026",
+      "payer": {
+        "firstName": "Marie",
+        "lastName": "Dupont",
+        "email": "marie.dupont@example.com",
+        "dateOfBirth": "1985-04-20T00:00:00Z"
+      },
+      "discount": { "code": "2026POUMA", "amount": 10 },
+      "totalAmount": 190,
+      "items": [
+        {
+          "id": "ticket-001",
+          "firstName": "Léa",
+          "lastName": "Dupont",
+          "email": "lea.dupont@example.com",
+          "dateOfBirth": "2015-06-10T00:00:00Z",
+          "initialAmount": 100,
+          "discount": 10,
+          "amount": 90,
+          "customFields": [
+            { "name": "Atelier 1", "answer": "CIRQUE" },
+            { "name": "Atelier 2", "answer": "" }
+          ]
+        },
+        {
+          "id": "ticket-002",
+          "firstName": "Marie",
+          "lastName": "Dupont",
+          "email": "marie.dupont@example.com",
+          "dateOfBirth": "1985-04-20T00:00:00Z",
+          "initialAmount": 100,
+          "discount": 0,
+          "amount": 100,
+          "customFields": [
+            { "name": "Atelier 1", "answer": "DANSE" },
+            { "name": "Atelier 2", "answer": "" }
+          ]
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "pageIndex": 1,
+    "totalPages": 1,
+    "resultsCount": 1,
+    "totalCount": 1
+  }
+}
