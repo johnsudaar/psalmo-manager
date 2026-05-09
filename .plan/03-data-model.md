@@ -8,7 +8,8 @@ default).
 
 **Audit log**: Every model includes `has_paper_trail skip: [:updated_at], skip_unchanged: true`.
 The `versions` table is created by `rails generate paper_trail:install`. `whodunnit` is set to
-`current_user.email` via `ApplicationController#user_for_paper_trail`.
+`current_user.email` via `ApplicationController#user_for_paper_trail`. Note: PaperTrail 15+
+does not have `track_associations` config — association tracking is disabled by default.
 
 ---
 
