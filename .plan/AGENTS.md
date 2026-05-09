@@ -118,3 +118,5 @@ See `.plan/01-project-overview.md` for the full context.
   `whodunnit` = `current_user.email`. Sync changes are tracked.
 - **Test coverage**: All service objects, actors, and models with business logic must have unit
   tests. Happy path + at least one failure path per public method.
+- **Test execution**: Run specs from the Docker app container, not from the host. Use
+  `docker compose exec -e RAILS_ENV=test app bundle exec rspec ...`.
