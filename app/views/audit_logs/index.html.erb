@@ -1,0 +1,52 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Audit log</h1>
+</div>
+
+<div class="mb-6 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+  Historique des créations, modifications et suppressions récentes sur l'application.
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Date</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Utilisateur</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Action</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Ressource</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Détails</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      <% @versions.each_with_index do |version, i| %>
+        <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
+          <td class="px-6 py-4 text-sm text-gray-700"><%= version.created_at&.strftime("%d/%m/%Y %H:%M") || "—" %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= version.whodunnit.presence || "Système" %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= human_event(version) %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= resource_label(version) %></td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            <% lines = change_lines(version) %>
+            <% if lines.any? %>
+              <div class="space-y-1">
+                <% lines.each do |line| %>
+                  <p class="text-xs text-gray-600"><%= line %></p>
+                <% end %>
+              </div>
+            <% elsif version.event == "create" %>
+              <span class="text-xs text-gray-500">Ressource créée</span>
+            <% elsif version.event == "destroy" %>
+              <span class="text-xs text-gray-500">Ressource supprimée</span>
+            <% else %>
+              —
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @versions.empty? %>
+        <tr>
+          <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">Aucun événement d'audit.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

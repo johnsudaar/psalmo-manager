@@ -1,0 +1,50 @@
+<%# locals: staff_profile %>
+<% balance = staff_profile.balance_cents %>
+<% balance_color = staff_profile.psalmodia_owes? ? "text-green-600 font-bold" : staff_profile.instructor_owes? ? "text-red-600 font-bold" : "text-gray-900 font-bold" %>
+
+<div id="financial_summary" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+  <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Résumé financier</h2>
+  <dl class="space-y-2">
+    <div class="flex justify-between py-1 border-b border-gray-100">
+      <dt class="text-sm text-gray-600">Indemnités + transport + autres frais</dt>
+      <dd class="text-sm font-medium text-gray-900"><%= format_euros(staff_profile.total_to_pay_instructor_cents) %></dd>
+    </div>
+    <div class="flex justify-between py-1 border-b border-gray-100">
+      <dt class="text-sm text-gray-600">Total pris en charge Psalmodia</dt>
+      <dd class="text-sm font-medium text-gray-900"><%= format_euros(staff_profile.total_psalmodia_covers_cents) %></dd>
+    </div>
+    <div class="flex justify-between py-1 border-b border-gray-100">
+      <dt class="text-sm text-gray-600">Total membres non pris en charge</dt>
+      <dd class="text-sm font-medium text-gray-900"><%= format_euros(staff_profile.total_member_uncovered_cents) %></dd>
+    </div>
+    <div class="flex justify-between py-1 border-b border-gray-100">
+      <dt class="text-sm text-gray-600">Total membres pris en charge</dt>
+      <dd class="text-sm font-medium text-gray-900"><%= format_euros(staff_profile.total_member_covered_cents) %></dd>
+    </div>
+    <div class="flex justify-between py-1 border-b border-gray-200">
+      <dt class="text-sm font-medium text-gray-700">Montant dû à l'animateur</dt>
+      <dd class="text-sm font-semibold text-gray-900"><%= format_euros(staff_profile.amount_owed_to_instructor_cents) %></dd>
+    </div>
+    <div class="flex justify-between py-1 border-b border-gray-100">
+      <dt class="text-sm text-gray-600">Total acomptes versés</dt>
+      <dd class="text-sm font-medium text-gray-900">+ <%= format_euros(staff_profile.total_advances_cents) %></dd>
+    </div>
+    <div class="flex justify-between py-1 border-b border-gray-100">
+      <dt class="text-sm text-gray-600">Total versements</dt>
+      <dd class="text-sm font-medium text-gray-900">- <%= format_euros(staff_profile.total_payments_cents) %></dd>
+    </div>
+    <div class="flex justify-between py-2 mt-1">
+      <dt class="text-base font-semibold text-gray-900">SOLDE</dt>
+      <dd class="text-base <%= balance_color %>"><%= format_euros(balance.abs) %></dd>
+    </div>
+    <div class="text-sm text-center py-1">
+      <% if staff_profile.psalmodia_owes? %>
+        <span class="text-green-600 font-medium">Psalmodia doit à l'animateur</span>
+      <% elsif staff_profile.instructor_owes? %>
+        <span class="text-red-600 font-medium">L'animateur doit à Psalmodia</span>
+      <% else %>
+        <span class="text-gray-500">Solde équilibré</span>
+      <% end %>
+    </div>
+  </dl>
+</div>

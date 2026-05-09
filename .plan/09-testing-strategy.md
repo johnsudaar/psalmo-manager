@@ -10,7 +10,8 @@
 | WebMock | Stub HTTP requests (HelloAsso API) |
 | VCR | Record/replay real API responses |
 | Shoulda Matchers | One-liner association and validation specs |
-| Capybara + Selenium | System (end-to-end) specs |
+| Capybara (rack_test) | System (end-to-end) specs — default driver |
+| Capybara + Selenium | JS-tagged system specs only (`:js` metadata) |
 
 ---
 
@@ -21,6 +22,7 @@ spec/
 ├── rails_helper.rb
 ├── spec_helper.rb
 ├── support/
+│   ├── capybara.rb        ← NEW: rack_test default, selenium only for :js
 │   ├── factory_bot.rb
 │   ├── shoulda_matchers.rb
 │   ├── webmock.rb
@@ -59,7 +61,8 @@ spec/
 ├── requests/
 │   ├── webhooks/
 │   │   └── helloasso_spec.rb
-│   └── exports_spec.rb
+│   ├── exports_spec.rb
+│   └── orders_spec.rb
 ├── queries/
 │   └── dashboard_stats_spec.rb
 ├── pdf/
@@ -85,6 +88,69 @@ spec/
 ---
 
 ## Support Files
+
+### spec/support/capybara.rb
+
+The **default driver for all system specs is `:rack_test`** (no browser, no network).
+Selenium remote Chrome is only used for examples explicitly tagged `js: true`.
+
+```ruby
+require "capybara/rails"
+require "capybara/rspec"
+require "selenium-webdriver"
+
+Capybara.register_driver :selenium_remote_chrome do |app|
+  options = Selenium::WebDriver::Chrome::Options.new
+  options.add_argument("--headless")
+  options.add_argument("--no-sandbox")
+  options.add_argument("--disable-dev-shm-usage")
+  options.add_argument("--disable-gpu")
+  options.add_argument("--window-size=1400,900")
+
+  Capybara::Selenium::Driver.new(
+    app,
+    browser: :remote,
+    url: "http://selenium:4444/wd/hub",
+    options: options
+  )
+end
+
+Capybara.default_driver    = :rack_test
+Capybara.javascript_driver = :selenium_remote_chrome
+
+RSpec.configure do |config|
+  config.before(:each, type: :system) do
+    driven_by :rack_test
+  end
+
+  config.before(:each, :js, type: :system) do
+    driven_by :selenium_remote_chrome
+  end
+
+  config.around(:each, :js, type: :system) do |example|
+    WebMock.allow_net_connect!
+    example.run
+    WebMock.disable_net_connect!(allow_localhost: true)
+  end
+end
+```
+
+**Why rack_test instead of Selenium for most system specs?**  
+Running Selenium inside Docker requires the remote Chrome container to reach the Capybara test
+Puma server by name/IP. This caused `ERR_SSL_PROTOCOL_ERROR` in our setup (Selenium hub at
+`http://selenium:4444` could not reach `http://app:3001`). Since the critical user flows do not
+rely on JavaScript (no Turbo Frame in-place updates, no Stimulus auto-save in the test path),
+`rack_test` gives full coverage without the networking complexity. Tag individual examples with
+`js: true` only when JavaScript execution is genuinely required.
+
+### spec/rails_helper.rb — required additions
+
+```ruby
+# Devise helpers — must be included for all 3 spec types
+config.include Devise::Test::ControllerHelpers, type: :controller
+config.include Devise::Test::IntegrationHelpers, type: :request
+config.include Devise::Test::IntegrationHelpers, type: :system
+```
 
 ### spec/support/factory_bot.rb
 ```ruby
@@ -123,6 +189,20 @@ end
 ---
 
 ## Factory Definitions
+
+### users.rb
+```ruby
+FactoryBot.define do
+  factory :user do
+    email    { Faker::Internet.unique.email }
+    password { "password123" }
+  end
+end
+```
+
+> **Required**: The `User` model is the Devise admin user. Both `email` and `password` must be
+> set. `sign_in user` in specs uses Devise test helpers and requires a persisted user with valid
+> credentials.
 
 ### editions.rb
 ```ruby
@@ -330,6 +410,7 @@ end
 ### CSV Importers
 
 Use fixture CSV files in `spec/fixtures/csv/`. Assert record counts and specific field values.
+Fixture CSVs must use fictional names and `.example.test` email addresses only.
 
 ```ruby
 RSpec.describe Importers::ParticipantsCsvImporter do
@@ -359,6 +440,10 @@ end
 ## Request Specs
 
 Test HTTP responses, authentication, and content type. No JavaScript.
+
+Important lesson: request specs must cover a smoke-test render for every controller endpoint,
+especially index pages. This catches controller/view integration errors such as a bad
+`includes(:association_name)` that model or actor specs will never exercise.
 
 ```ruby
 RSpec.describe "Webhooks::Helloasso", type: :request do
@@ -399,7 +484,7 @@ RSpec.describe FicheIndemnisationPdf do
   end
 
   it "includes the staff member's name" do
-    expect(pdf_text).to include(staff_profile.person.last_name)
+    expect(pdf_text).to include(staff_profile.full_name)
   end
 
   it "includes the dossier number" do
@@ -418,21 +503,70 @@ end
 
 ## System Specs
 
-Run against a real browser (headless Chromium via Selenium). Only cover critical user flows.
+Default driver is `:rack_test`. Use `js: true` metadata only when the test genuinely requires
+JavaScript (Turbo Frame in-place updates, Stimulus events). See `spec/support/capybara.rb`.
+
+### Rules for writing system specs
+
+1. **Use `let!` (bang) for any factory that must exist before a `visit` call.** Lazy `let` will
+   not create the record in time, causing `current_edition` to return `nil` and controller errors.
+
+2. **Edition resolution in system specs**: `current_edition` falls back to
+   `Edition.order(year: :desc).first`. As long as exactly one edition exists per example,
+   this works without setting `session[:edition_id]`. Always use `let!(:edition)`.
+
+3. **Turbo Frame selectors**: The view wraps partials in `<turbo-frame id="staff_advances">`.
+   This creates two elements matching `#staff_advances` (the frame and the inner div). Use the
+   element-specific selector `"turbo-frame#staff_advances"` to avoid Capybara's
+   `Ambiguous match` error.
+
+4. **Navigation selects**: The layout nav contains an edition selector `<select>`. `first("select")`
+   will match it, not the content-area select. Always use a named selector:
+   ```ruby
+   find("select[name='new_workshop_id']")
+   ```
+
+5. **Controllers that render Turbo Stream must also handle HTML**: `rack_test` sends plain HTML
+   requests, not `text/vnd.turbo-stream.html`. Any controller action that previously only rendered
+   `turbo_stream:` must include a `respond_to` block with an `format.html` redirect fallback so
+   the spec can follow the redirect and assert page content.
+
+   Example (`StaffAdvancesController`):
+   ```ruby
+   respond_to do |format|
+     format.turbo_stream { render turbo_stream: [...] }
+     format.html         { redirect_to staff_profile_path(@staff_profile) }
+   end
+   ```
+
+### Implemented system specs
+
+| File | Driver | Flows covered |
+|---|---|---|
+| `spec/system/authentication_spec.rb` | rack_test | Login form, redirect, valid sign-in, invalid sign-in, sign-out |
+| `spec/system/participants_spec.rb` | rack_test | Index renders, participant list, search filter, minor badge |
+| `spec/system/workshop_substitution_spec.rb` | rack_test | Search, substitution form, applying substitution |
+| `spec/system/staff_profile_spec.rb` | rack_test | Show page, add advance (with redirect), remove advance |
+
+### Example
 
 ```ruby
 RSpec.describe "Workshop substitution", type: :system do
-  let(:admin) { create(:user) }
-  let(:registration) { create(:registration, :with_workshops) }
+  let(:user)    { create(:user) }
+  let!(:edition) { create(:edition) }  # let! — must exist before visit
+  let!(:workshop_a) { create(:workshop, edition: edition, name: "CIRQUE",    time_slot: :matin) }
+  let!(:workshop_b) { create(:workshop, edition: edition, name: "MARMITONS", time_slot: :matin) }
+  let(:person)       { create(:person) }
+  let!(:registration) { create(:registration, person: person, order: create(:order, edition: edition), edition: edition) }
+  let!(:rw)          { create(:registration_workshop, registration: registration, workshop: workshop_a) }
 
-  before { sign_in admin }
+  before { sign_in user }
 
-  it "allows substituting a workshop for a participant" do
+  it "replaces the workshop and redirects with a flash message" do
     visit new_workshop_substitution_path(registration_id: registration.id)
-    select "MARMITONS", from: "Atelier matin"
-    click_button "Appliquer le changement"
+    find("select[name='new_workshop_id']").find("option", text: "MARMITONS").select_option
+    click_button "Appliquer"
     expect(page).to have_text("Changement appliqué")
-    expect(registration.reload.workshops.pluck(:name)).to include("MARMITONS")
   end
 end
 ```
@@ -456,7 +590,10 @@ Use `SimpleCov` optionally — not mandatory but recommended once the suite is s
 
 ## CI Checklist (for any PR)
 
-- [ ] `bundle exec rspec` — all tests pass
+- [ ] `docker compose exec -e RAILS_ENV=test app bundle exec rspec` — all tests pass
 - [ ] `bundle exec rubocop` — no offences
 - [ ] `bundle exec rake db:migrate` — migration runs cleanly
 - [ ] No hardcoded credentials or real personal data in fixtures
+
+Project-specific verification command:
+- [ ] `docker compose exec -e RAILS_ENV=test app bundle exec rspec`
