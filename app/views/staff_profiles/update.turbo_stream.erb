@@ -1,0 +1,9 @@
+<% if @error && @field %>
+  <%= turbo_stream.replace "field_error_#{@field}" do %>
+    <span class="text-red-600 text-sm"><%= @error %></span>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "financial_summary" do %>
+    <%= render "staff_profiles/financial_summary", staff_profile: @staff_profile %>
+  <% end %>
+<% end %>
