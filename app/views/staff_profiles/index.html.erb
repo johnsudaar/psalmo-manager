@@ -16,6 +16,8 @@
 <% total_member_uncovered_meals_cents = @staff_profiles.sum(&:member_uncovered_meals_cents) %>
 <% total_member_uncovered_tickets_cents = @staff_profiles.sum(&:member_uncovered_tickets_cents) %>
 <% total_member_uncovered_cents = @staff_profiles.sum(&:total_member_uncovered_cents) %>
+<% total_member_covered_accommodation_cents = @staff_profiles.sum(&:member_covered_accommodation_cents) %>
+<% total_member_covered_meals_cents = @staff_profiles.sum(&:member_covered_meals_cents) %>
 <% total_member_covered_tickets_cents = @staff_profiles.sum(&:member_covered_tickets_cents) %>
 <% total_member_covered_cents = @staff_profiles.sum(&:total_member_covered_cents) %>
 <% total_amount_owed_to_instructor_cents = @staff_profiles.sum(&:amount_owed_to_instructor_cents) %>
@@ -35,7 +37,7 @@
           <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wide bg-indigo-50 border-r border-indigo-200">Animateur</th>
           <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-emerald-700 uppercase tracking-wide bg-emerald-50 border-r border-emerald-200">Pris en charge Psalmodia</th>
           <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-amber-700 uppercase tracking-wide bg-amber-50 border-r border-amber-200">Membres à payer</th>
-          <th colspan="2" class="px-4 py-2 text-left text-xs font-semibold text-cyan-700 uppercase tracking-wide bg-cyan-50 border-r border-cyan-200">Membres pris en charge</th>
+          <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-cyan-700 uppercase tracking-wide bg-cyan-50 border-r border-cyan-200">Membres pris en charge</th>
           <th colspan="4" class="px-4 py-2 text-left text-xs font-semibold text-violet-700 uppercase tracking-wide bg-violet-50 border-r border-violet-200">Règlement</th>
           <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide border-l border-gray-300 bg-gray-100">Suivi</th>
           <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide bg-gray-100">Actions</th>
@@ -56,6 +58,8 @@
           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-amber-50/60">Repas non pris en charge</th>
           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-amber-50/60">Billets non pris en charge</th>
           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-amber-50/60 border-r border-amber-200">Total membres à payer</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-cyan-50/60">Hébergement membres pris en charge</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-cyan-50/60">Repas membres pris en charge</th>
           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-cyan-50/60">Billets membres pris en charge</th>
           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-cyan-50/60 border-r border-cyan-200">Total membres pris en charge</th>
           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide bg-violet-50/60">Montant dû à l'animateur</th>
@@ -69,15 +73,15 @@
       <tbody class="divide-y divide-gray-200">
         <% if @staff_profiles.empty? %>
           <tr>
-            <td colspan="23" class="px-6 py-8 text-center text-sm text-gray-500">Aucune fiche staff pour cette édition.</td>
+            <td colspan="25" class="px-6 py-8 text-center text-sm text-gray-500">Aucune fiche staff pour cette édition.</td>
           </tr>
         <% else %>
           <% @staff_profiles.each_with_index do |sp, i| %>
             <% row_bg = i.even? ? "bg-white" : "bg-gray-50" %>
             <tr class="<%= row_bg %>">
-              <td class="px-4 py-4 text-sm text-gray-700 border-r border-gray-100"><%= sp.dossier_number %></td>
-              <td class="px-4 py-4 text-sm font-medium text-gray-900"><%= sp.person&.last_name || sp.last_name %></td>
-              <td class="px-4 py-4 text-sm text-gray-700 border-r border-gray-100"><%= sp.person&.first_name || sp.first_name %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 border-r border-gray-100"><%= link_to sp.dossier_number, staff_profile_path(sp), class: "text-indigo-600 hover:text-indigo-800 font-medium" %></td>
+              <td class="px-4 py-4 text-sm font-medium text-gray-900"><%= link_to sp.person&.last_name || sp.last_name, staff_profile_path(sp), class: "hover:text-indigo-600" %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 border-r border-gray-100"><%= link_to sp.person&.first_name || sp.first_name, staff_profile_path(sp), class: "hover:text-indigo-600" %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.allowance_cents) %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.travel_allowance_cents) %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.supplies_cost_cents) %></td>
@@ -90,6 +94,8 @@
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_uncovered_meals_cents) %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_uncovered_tickets_cents) %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap border-r border-amber-100"><%= format_table_euros.call(sp.total_member_uncovered_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_covered_accommodation_cents) %></td>
+              <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_covered_meals_cents) %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.member_covered_tickets_cents) %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap border-r border-cyan-100"><%= format_table_euros.call(sp.total_member_covered_cents) %></td>
               <td class="px-4 py-4 text-sm text-gray-700 whitespace-nowrap"><%= format_table_euros.call(sp.amount_owed_to_instructor_cents) %></td>
@@ -120,6 +126,8 @@
             <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_uncovered_meals_cents) %></td>
             <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_uncovered_tickets_cents) %></td>
             <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap border-r border-amber-100"><%= format_table_euros.call(total_member_uncovered_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_covered_accommodation_cents) %></td>
+            <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_covered_meals_cents) %></td>
             <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_member_covered_tickets_cents) %></td>
             <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap border-r border-cyan-100"><%= format_table_euros.call(total_member_covered_cents) %></td>
             <td class="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap"><%= format_table_euros.call(total_amount_owed_to_instructor_cents) %></td>
