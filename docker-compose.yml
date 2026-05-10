@@ -35,6 +35,18 @@ services:
       - postgres
       - redis
 
+  tailwind:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec rails tailwindcss:watch
+    user: "1000:1000"
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    environment:
+      RAILS_ENV: development
+
   sidekiq:
     build:
       context: .

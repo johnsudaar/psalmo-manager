@@ -90,7 +90,7 @@ class FicheIndemnisationPdf
   end
 
   def section_frais_animateur
-    section_header "RÉCAPITULATIF DES FRAIS DU/DES ANIMATEUR(S)"
+    section_header "FRAIS DU/DES ANIMATEUR(S)"
 
     two_col_row "Indemnités", @sp.allowance_cents
     if @sp.km_traveled&.positive?
@@ -109,15 +109,15 @@ class FicheIndemnisationPdf
     end
     two_col_row @sp.effective_allowance_label, @sp.supplies_cost_cents
     move_down 2
-    two_col_row "Total frais à payer à animateur(s)", @sp.total_to_pay_instructor_cents, bold: true
+    two_col_row "Total frais à payer au(x) animateur(s)", @sp.total_to_pay_instructor_cents, bold: true
   end
 
   def section_frais_pris_en_charge
     section_header "FRAIS ANIMATEUR(S) PRIS EN CHARGE PSALMODIA"
 
-    two_col_row "Hébergement (pris en charge Psalmodia)", @sp.accommodation_cost_cents
-    two_col_row "Repas (pris en charge Psalmodia)", @sp.meals_cost_cents
-    two_col_row "Billet festivalier et/ou atelier (pris en charge Psalmodia)", @sp.tickets_cost_cents
+    two_col_row "Hébergement", @sp.accommodation_cost_cents
+    two_col_row "Repas", @sp.meals_cost_cents
+    two_col_row "Billet(s) festivalier(s) et/ou atelier(s)", @sp.tickets_cost_cents
     move_down 2
     two_col_row "Total frais animateur(s) pris en charge Psalmodia", @sp.total_psalmodia_covers_cents, bold: true
   end
@@ -125,14 +125,14 @@ class FicheIndemnisationPdf
   def section_frais_membres
     section_header "MONTANT DES FRAIS DU/DES MEMBRE(S) DE LA FAMILLE"
 
-    subsection_title("A la charge de l'animateur")
+    subsection_title("À la charge du/des animateur(s)")
     move_down 2
     indent(8) do
       two_col_row "Hébergement", @sp.member_uncovered_accommodation_cents
       two_col_row "Repas", @sp.member_uncovered_meals_cents
       two_col_row "Billet(s) et atelier(s)", @sp.member_uncovered_tickets_cents
       move_down 2
-      two_col_row "Total des frais membre(s) à payer par animateur", @sp.total_member_uncovered_cents, bold: true
+      two_col_row "Total des frais membre(s) à la charge du/des animateur(s)", @sp.total_member_uncovered_cents, bold: true
     end
 
     move_down 10
@@ -140,6 +140,8 @@ class FicheIndemnisationPdf
     subsection_title("Pris en charge Psalmodia")
     move_down 2
     indent(8) do
+      two_col_row "Hébergement", @sp.member_covered_accommodation_cents
+      two_col_row "Repas", @sp.member_covered_meals_cents
       two_col_row "Billet(s) et atelier(s)", @sp.member_covered_tickets_cents
       move_down 2
       two_col_row "Total des frais membres pris en charge Psalmodia", @sp.total_member_covered_cents, bold: true
@@ -155,7 +157,7 @@ class FicheIndemnisationPdf
       stroke_bounds
       stroke_color BLACK
       fill_color BLACK
-      highlighted_amount_row "Montant dû à l'animateur", @sp.amount_owed_to_instructor_cents, y_offset: 6, font_style: :bold, text_color: INDIGO
+      highlighted_amount_row "Montant dû au(x) animateur(s)", @sp.amount_owed_to_instructor_cents, y_offset: 6, font_style: :bold, text_color: INDIGO
     end
     move_down 4
   end
@@ -167,7 +169,7 @@ class FicheIndemnisationPdf
   end
 
   def section_acomptes
-    section_header "ACOMPTES PAYÉS PAR L'ANIMATEUR"
+    section_header "ACOMPTES PAYÉS PAR LES/L'ANIMATEUR(S)"
     advances = @sp.staff_advances.order(:date)
     if advances.empty?
       fill_color GRAY
@@ -182,7 +184,7 @@ class FicheIndemnisationPdf
   end
 
   def section_versements
-    section_header "MONTANTS VERSÉS À L'ANIMATEUR"
+    section_header "MONTANTS VERSÉS À LES/L'ANIMATEUR(S)"
     payments = @sp.staff_payments.order(:date)
     if payments.empty?
       fill_color GRAY
@@ -223,7 +225,7 @@ class FicheIndemnisationPdf
       fill_color bg
       fill_rectangle [ 0, cursor ], bounds.width, 20
       highlighted_amount_row(
-        "Somme à payer à l'animateur",
+        "Somme à payer au(x) animateur(s)",
         balance > 0 ? owed_to_instructor : nil,
         y_offset: 4,
         font_style: (balance > 0 ? :bold : :normal),

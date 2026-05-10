@@ -7,13 +7,15 @@ module Actors
       travel_override_cents
       supplies_cost_cents accommodation_cost_cents meals_cost_cents tickets_cost_cents
       member_uncovered_accommodation_cents member_uncovered_meals_cents
-      member_uncovered_tickets_cents member_covered_tickets_cents notes
+      member_uncovered_tickets_cents member_covered_accommodation_cents
+      member_covered_meals_cents member_covered_tickets_cents notes
     ].freeze
 
     CENTS_FIELDS = %w[
       allowance_cents km_rate_override_cents travel_override_cents supplies_cost_cents accommodation_cost_cents
       meals_cost_cents tickets_cost_cents member_uncovered_accommodation_cents
-      member_uncovered_meals_cents member_uncovered_tickets_cents member_covered_tickets_cents
+      member_uncovered_meals_cents member_uncovered_tickets_cents
+      member_covered_accommodation_cents member_covered_meals_cents member_covered_tickets_cents
     ].freeze
 
     DECIMAL_FIELDS = %w[km_traveled].freeze

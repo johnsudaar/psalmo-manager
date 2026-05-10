@@ -331,6 +331,8 @@ Financial profile for a staff member (instructor or organiser) for a given editi
 | `member_uncovered_accommodation_cents` | integer | default: 0 | hébergement non pris en charge |
 | `member_uncovered_meals_cents` | integer | default: 0 | repas non pris en charge |
 | `member_uncovered_tickets_cents` | integer | default: 0 | billets non pris en charge |
+| `member_covered_accommodation_cents` | integer | default: 0 | hébergement membres pris en charge Psalmodia |
+| `member_covered_meals_cents` | integer | default: 0 | repas membres pris en charge Psalmodia |
 | `member_covered_tickets_cents` | integer | default: 0 | billets membres pris en charge Psalmodia |
 | `allowance_label` | string | | nom de l'indemnité (descriptive label) |
 | `notes` | text | | commentaires libres |
@@ -390,7 +392,9 @@ class StaffProfile < ApplicationRecord
   end
 
   def total_member_covered_cents
-    member_covered_tickets_cents
+    member_covered_accommodation_cents +
+      member_covered_meals_cents +
+      member_covered_tickets_cents
   end
 
   def amount_owed_to_instructor_cents

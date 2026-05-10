@@ -172,20 +172,21 @@ total_member_uncovered = member_uncovered_accommodation_cents
 ### Total member costs covered by Psalmodia (Frais membres pris en charge)
 
 ```
-total_member_covered = member_covered_tickets_cents
+total_member_covered = member_covered_accommodation_cents
+                     + member_covered_meals_cents
+                     + member_covered_tickets_cents
 ```
 
 ### Amount owed TO the instructor (Montant dû à l'animateur)
 
 ```
-amount_owed_to_instructor = total_to_pay
-                          + total_psalmodia_covers
-                          - total_member_uncovered
-                          + total_member_covered
+amount_owed_to_instructor = total_to_pay - total_member_uncovered
 ```
 
-This represents the net amount Psalmodia owes the instructor before accounting for any payments
-already made.
+`total_psalmodia_covers` and `total_member_covered` are **informational only** — they appear in
+the PDF and UI but do not affect the balance calculation. They represent costs Psalmodia directly
+bears (accommodation, meals, tickets) and are not flows of cash between Psalmodia and the
+instructor.
 
 ### Balance (Solde)
 

@@ -58,14 +58,13 @@ class StaffProfile < ApplicationRecord
   end
 
   def total_member_covered_cents
-    member_covered_tickets_cents
+    member_covered_accommodation_cents +
+      member_covered_meals_cents +
+      member_covered_tickets_cents
   end
 
   def amount_owed_to_instructor_cents
-    total_to_pay_instructor_cents +
-      total_psalmodia_covers_cents -
-      total_member_uncovered_cents +
-      total_member_covered_cents
+    total_to_pay_instructor_cents - total_member_uncovered_cents
   end
 
   def total_advances_cents

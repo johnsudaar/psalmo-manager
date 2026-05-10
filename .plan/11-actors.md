@@ -106,7 +106,8 @@ field (e.g. `first_name`) must be rejected.
 allowance_cents, allowance_label, km_traveled, km_rate_override_cents, transport_mode,
 supplies_cost_cents, accommodation_cost_cents, meals_cost_cents, tickets_cost_cents,
 member_uncovered_accommodation_cents, member_uncovered_meals_cents,
-member_uncovered_tickets_cents, member_covered_tickets_cents, notes
+member_uncovered_tickets_cents, member_covered_accommodation_cents,
+member_covered_meals_cents, member_covered_tickets_cents, notes
 ```
 
 **Logic**:

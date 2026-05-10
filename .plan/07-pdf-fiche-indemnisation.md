@@ -100,6 +100,8 @@ Sub-section B — "Pris en charge Psalmodia":
 
 | Label | Value |
 |---|---|
+| Hébergement pris en charge par Psalmodia | `member_covered_accommodation_cents` |
+| Repas pris en charge par Psalmodia | `member_covered_meals_cents` |
 | Billet(s) festivalier(s) et atelier(s) pris en charge par Psalmodia | `member_covered_tickets_cents` |
 | **Total des frais membres pris en charge Psalmodia** | `total_member_covered_cents` (bold) |
 

@@ -132,6 +132,8 @@ class StaffProfilesController < ApplicationController
       :member_uncovered_accommodation_cents,
       :member_uncovered_meals_cents,
       :member_uncovered_tickets_cents,
+      :member_covered_accommodation_cents,
+      :member_covered_meals_cents,
       :member_covered_tickets_cents,
       :notes
     )
