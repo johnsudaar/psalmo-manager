@@ -1,0 +1,22 @@
+# Application
+app_name: psalmo-manager
+app_domain: psalmo.hurter.fr
+app_user: psalmo
+app_dir: "/home/{{ app_user }}/app"
+
+# Docker image from your registry
+app_docker_image: "ghcr.io/johnsudaar/psalmo-manager:latest"
+
+# SSH hardening
+ssh_port: 22
+ssh_allowed_users: "ubuntu"
+
+# PostgreSQL
+db_name: psalmo_manager_production
+db_user: psalmo
+
+# Certbot / Let's Encrypt
+certbot_email: jonathan.hurter@gmail.com
+
+# Server
+server_timezone: Europe/Paris

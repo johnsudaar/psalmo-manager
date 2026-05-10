@@ -1,0 +1,16 @@
+[Unit]
+Description=Psalmo Manager (Docker Compose)
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User={{ app_user }}
+WorkingDirectory={{ app_dir }}
+ExecStart=/usr/bin/docker compose up -d --pull always
+ExecStop=/usr/bin/docker compose down
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,39 @@
+# Managed by Ansible — do not edit manually
+
+Port {{ ssh_port }}
+AddressFamily inet
+
+# Authentication
+PermitRootLogin no
+PasswordAuthentication yes
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+
+# Restrict access to specific users
+AllowUsers {{ ssh_allowed_users }}
+
+# Limit brute-force surface
+MaxAuthTries 3
+MaxSessions 5
+LoginGraceTime 30s
+
+# Disable unused features
+X11Forwarding no
+AllowAgentForwarding yes
+AllowTcpForwarding local
+PrintMotd no
+Banner none
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+
+# Keep-alive (drops idle sessions after ~10 min)
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+UsePAM yes
+
+Subsystem sftp /usr/lib/openssh/sftp-server

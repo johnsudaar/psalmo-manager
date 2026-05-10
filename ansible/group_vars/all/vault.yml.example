@@ -1,0 +1,10 @@
+# Rename to vault.yml and encrypt with:
+#   ansible-vault encrypt group_vars/all/vault.yml
+
+vault_rails_master_key: "your-rails-master-key-here"     # contents of config/master.key
+vault_secret_key_base: "a-very-long-random-string"       # openssl rand -hex 64
+vault_db_password: "a-strong-random-password"            # openssl rand -base64 32
+
+# GitHub PAT with read:packages scope — used to pull from ghcr.io
+vault_ghcr_username: "your-github-username"
+vault_ghcr_token: "ghp_xxxxxxxxxxxxxxxxxxxx"

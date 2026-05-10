@@ -1,0 +1,405 @@
+---
+- name: Deploy and secure psalmo-manager
+  hosts: all
+  become: true
+
+  pre_tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  tasks:
+
+    # =========================================================================
+    # Base system
+    # =========================================================================
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - git
+          - htop
+          - vim
+          - unzip
+          - gnupg
+          - ca-certificates
+          - lsb-release
+          - apt-transport-https
+        state: present
+
+    - name: Set timezone
+      ansible.builtin.command: timedatectl set-timezone "{{ server_timezone }}"
+      register: _tz
+      changed_when: _tz.rc == 0
+
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ app_name }}"
+
+    # =========================================================================
+    # App service account
+    # =========================================================================
+
+    - name: Create app group
+      ansible.builtin.group:
+        name: "{{ app_user }}"
+        state: present
+
+    - name: Create app user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_user }}"
+        shell: /bin/bash
+        create_home: true
+        state: present
+
+    # =========================================================================
+    # SSH hardening
+    # =========================================================================
+
+    - name: Configure SSH
+      ansible.builtin.template:
+        src: templates/sshd_config.j2
+        dest: /etc/ssh/sshd_config
+        owner: root
+        group: root
+        mode: "0600"
+        validate: "sshd -t -f %s"
+      notify: Restart SSH
+
+    # =========================================================================
+    # UFW firewall
+    # =========================================================================
+
+    - name: Install UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Set UFW default incoming policy to deny
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set UFW default outgoing policy to allow
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Allow SSH
+      community.general.ufw:
+        rule: allow
+        port: "{{ ssh_port | string }}"
+        proto: tcp
+
+    - name: Allow HTTP
+      community.general.ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+
+    - name: Allow HTTPS
+      community.general.ufw:
+        rule: allow
+        port: "443"
+        proto: tcp
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+
+    # =========================================================================
+    # fail2ban
+    # =========================================================================
+
+    - name: Install fail2ban
+      ansible.builtin.apt:
+        name: fail2ban
+        state: present
+
+    - name: Configure fail2ban SSH jail
+      ansible.builtin.template:
+        src: templates/fail2ban-jail.local.j2
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart fail2ban
+
+    - name: Enable and start fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        enabled: true
+        state: started
+
+    # =========================================================================
+    # Unattended security upgrades
+    # =========================================================================
+
+    - name: Install unattended-upgrades
+      ansible.builtin.apt:
+        name:
+          - unattended-upgrades
+          - apt-listchanges
+        state: present
+
+    - name: Configure unattended-upgrades
+      ansible.builtin.template:
+        src: templates/unattended-upgrades.j2
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Enable automatic security updates
+      ansible.builtin.copy:
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+          APT::Periodic::AutocleanInterval "7";
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        owner: root
+        group: root
+        mode: "0644"
+
+    # =========================================================================
+    # Docker
+    # =========================================================================
+
+    - name: Create apt keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Add Docker apt repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+
+    - name: Install Docker CE
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Add app user to docker group
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        groups: docker
+        append: true
+
+    - name: Enable and start Docker
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    # =========================================================================
+    # Application
+    # =========================================================================
+
+    - name: Create .docker directory for app user
+      ansible.builtin.file:
+        path: "/home/{{ app_user }}/.docker"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0700"
+
+    - name: Write GHCR credentials for app user
+      ansible.builtin.copy:
+        content: |
+          {
+            "auths": {
+              "ghcr.io": {
+                "auth": "{{ (vault_ghcr_username + ':' + vault_ghcr_token) | b64encode }}"
+              }
+            }
+          }
+        dest: "/home/{{ app_user }}/.docker/config.json"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0600"
+      no_log: true
+
+    - name: Create app directory
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0750"
+
+    - name: Deploy production docker-compose
+      ansible.builtin.template:
+        src: templates/docker-compose.prod.yml.j2
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0640"
+      notify: Restart psalmo
+
+    - name: Deploy app environment file
+      ansible.builtin.template:
+        src: templates/app.env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0600"
+      no_log: true
+      notify: Restart psalmo
+
+    - name: Install systemd service for app
+      ansible.builtin.template:
+        src: templates/psalmo.service.j2
+        dest: /etc/systemd/system/psalmo.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload systemd
+        - Restart psalmo
+
+    - name: Enable app service
+      ansible.builtin.service:
+        name: psalmo
+        enabled: true
+
+    # =========================================================================
+    # Nginx
+    # =========================================================================
+
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Install Certbot and Nginx plugin
+      ansible.builtin.apt:
+        name:
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+    - name: Enable and start Nginx
+      ansible.builtin.service:
+        name: nginx
+        enabled: true
+        state: started
+
+    - name: Remove default Nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+
+    - name: Check if certificate already exists
+      ansible.builtin.stat:
+        path: "/etc/letsencrypt/live/{{ app_domain }}/fullchain.pem"
+      register: cert_stat
+
+    - name: Deploy HTTP-only Nginx config (pre-certificate)
+      ansible.builtin.template:
+        src: templates/nginx-site.j2
+        dest: "/etc/nginx/sites-available/{{ app_name }}"
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        nginx_ssl: false
+      when: not cert_stat.stat.exists
+      notify: Reload Nginx
+
+    - name: Enable Nginx site
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/{{ app_name }}"
+        dest: "/etc/nginx/sites-enabled/{{ app_name }}"
+        state: link
+
+    - name: Flush handlers to reload Nginx before Certbot runs
+      ansible.builtin.meta: flush_handlers
+
+    - name: Issue Let's Encrypt certificate
+      ansible.builtin.command: >
+        certbot certonly --nginx
+        --non-interactive
+        --agree-tos
+        --email {{ certbot_email }}
+        -d {{ app_domain }}
+      args:
+        creates: "/etc/letsencrypt/live/{{ app_domain }}/fullchain.pem"
+
+    - name: Deploy HTTPS Nginx config
+      ansible.builtin.template:
+        src: templates/nginx-site.j2
+        dest: "/etc/nginx/sites-available/{{ app_name }}"
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        nginx_ssl: true
+      notify: Reload Nginx
+
+    - name: Schedule weekly certificate renewal
+      ansible.builtin.cron:
+        name: certbot-renew
+        minute: "30"
+        hour: "3"
+        weekday: "1"
+        job: "certbot renew --quiet && systemctl reload nginx"
+
+    # =========================================================================
+    # Start the app
+    # =========================================================================
+
+    - name: Start app service
+      ansible.builtin.service:
+        name: psalmo
+        state: started
+
+  # ===========================================================================
+  # Handlers
+  # ===========================================================================
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+
+    - name: Restart fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted
+
+    - name: Reload Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart psalmo
+      ansible.builtin.service:
+        name: psalmo
+        state: restarted
