@@ -189,6 +189,7 @@
           <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Créneau</th>
           <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Inscrits</th>
           <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Capacité</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Places restantes</th>
           <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Remplissage</th>
         </tr>
       </thead>
@@ -203,6 +204,20 @@
             <td class="px-6 py-3 text-sm text-gray-600"><%= slot_labels[row[:workshop].time_slot] %></td>
             <td class="px-6 py-3 text-sm text-gray-700"><%= row[:enrolled] %></td>
             <td class="px-6 py-3 text-sm text-gray-700"><%= row[:capacity] || "—" %></td>
+            <td class="px-6 py-3 text-sm">
+              <% if row[:capacity] %>
+                <% remaining = row[:capacity] - row[:enrolled] %>
+                <% if remaining <= 0 %>
+                  <span class="text-red-600 font-medium">Complet</span>
+                <% elsif remaining <= (row[:capacity] * 0.2).ceil %>
+                  <span class="text-orange-500 font-medium"><%= remaining %></span>
+                <% else %>
+                  <span class="text-gray-700"><%= remaining %></span>
+                <% end %>
+              <% else %>
+                <span class="text-gray-400">—</span>
+              <% end %>
+            </td>
             <td class="px-6 py-3 text-sm text-gray-700">
               <% if row[:fill_rate] %>
                 <% bar_color = row[:fill_rate] >= 100 ? "bg-red-500" : row[:fill_rate] >= 80 ? "bg-orange-400" : "bg-green-500" %>
