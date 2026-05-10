@@ -8,7 +8,8 @@ default).
 
 **Audit log**: Every model includes `has_paper_trail skip: [:updated_at], skip_unchanged: true`.
 The `versions` table is created by `rails generate paper_trail:install`. `whodunnit` is set to
-`current_user.email` via `ApplicationController#user_for_paper_trail`.
+`current_user.email` via `ApplicationController#user_for_paper_trail`. Note: PaperTrail 15+
+does not have `track_associations` config — association tracking is disabled by default.
 
 ---
 
@@ -311,9 +312,13 @@ Financial profile for a staff member (instructor or organiser) for a given editi
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | `id` | bigint | PK | |
-| `person_id` | bigint | NOT NULL, FK | |
+| `person_id` | bigint | FK | optional link to an existing `Person` |
 | `edition_id` | bigint | NOT NULL, FK | |
 | `dossier_number` | integer | NOT NULL | auto-assigned sequential per edition |
+| `first_name` | string | | direct entry when no linked `Person` |
+| `last_name` | string | | direct entry when no linked `Person` |
+| `email` | string | | direct entry when no linked `Person` |
+| `phone` | string | | direct entry when no linked `Person` |
 | `internal_id` | string | | e.g. "001_", matches Sheet 2 identifier |
 | `transport_mode` | string | | e.g. "Voiture", "Train" |
 | `km_traveled` | decimal(8,2) | default: 0 | |
@@ -332,21 +337,35 @@ Financial profile for a staff member (instructor or organiser) for a given editi
 | `created_at` | datetime | | |
 | `updated_at` | datetime | | |
 
-**Indexes**: `[person_id, edition_id]` (unique); `edition_id`
+**Indexes**: `[person_id, edition_id]` (unique where `person_id IS NOT NULL`); `edition_id`; `person_id`
 
 **Model notes** (computed fields — see `.plan/10-business-rules.md` for formulas):
 ```ruby
 class StaffProfile < ApplicationRecord
   has_paper_trail skip: [:updated_at], skip_unchanged: true
 
-  belongs_to :person
+  belongs_to :person, optional: true
   belongs_to :edition
   has_many :staff_advances, dependent: :destroy
   has_many :staff_payments, dependent: :destroy
 
   validates :dossier_number, presence: true, uniqueness: { scope: :edition_id }
+  validates :last_name, :first_name, presence: true, unless: -> { person.present? }
+  validate :person_or_direct_fields
 
   before_create :assign_dossier_number
+
+  def full_name
+    person ? person.full_name : "#{first_name} #{last_name}".strip
+  end
+
+  def display_email
+    person&.email || email
+  end
+
+  def display_phone
+    person&.phone || phone
+  end
 
   def effective_km_rate_cents
     km_rate_override_cents || edition.km_rate_cents
@@ -402,6 +421,12 @@ class StaffProfile < ApplicationRecord
   end
 
   private
+
+  def person_or_direct_fields
+    return if person.present? || (first_name.present? && last_name.present?)
+
+    errors.add(:base, "Un animateur doit être lié à une personne ou avoir un nom et prénom saisis directement")
+  end
 
   def assign_dossier_number
     max = edition.staff_profiles.maximum(:dossier_number) || 0

@@ -1,0 +1,90 @@
+<% badge_class = case @order.status
+   when "confirmed" then "bg-green-100 text-green-800"
+   when "cancelled" then "bg-red-100 text-red-800"
+   when "refunded"  then "bg-yellow-100 text-yellow-800"
+   else "bg-gray-100 text-gray-600"
+   end %>
+
+<div class="flex items-center gap-4 mb-6">
+  <%= link_to "← Commandes", orders_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+  <h1 class="text-2xl font-semibold text-gray-900">Commande #<%= @order.helloasso_order_id %></h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+  <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Informations</h2>
+  <dl class="grid grid-cols-2 gap-4">
+    <div>
+      <dt class="text-xs text-gray-500">Date</dt>
+      <dd class="text-sm font-medium text-gray-900"><%= @order.order_date&.strftime("%d/%m/%Y") %></dd>
+    </div>
+    <div>
+      <dt class="text-xs text-gray-500">Statut</dt>
+      <dd>
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= badge_class %>">
+          <%= @order.status %>
+        </span>
+      </dd>
+    </div>
+    <div>
+      <dt class="text-xs text-gray-500">Payeur</dt>
+      <dd class="text-sm font-medium text-gray-900">
+        <% if @order.payer %>
+          <%= link_to @order.payer.full_name, participant_path(@order.payer),
+                class: "text-indigo-600 hover:text-indigo-800" %>
+        <% else %>
+          —
+        <% end %>
+      </dd>
+    </div>
+    <div>
+      <dt class="text-xs text-gray-500">Code promo</dt>
+      <dd class="text-sm font-medium text-gray-900">
+        <% if @order.promo_code.present? %>
+          <%= @order.promo_code %> (<%= format_euros(@order.promo_amount_cents) %>)
+        <% else %>
+          —
+        <% end %>
+      </dd>
+    </div>
+  </dl>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Inscriptions</h2>
+  </div>
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Participant</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Catégorie</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Prix</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Remise</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Net</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Ateliers</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      <% @order.registrations.each_with_index do |registration, i| %>
+        <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
+          <td class="px-6 py-4 text-sm font-medium text-gray-900">
+            <%= link_to registration.person.full_name, participant_path(registration.person),
+                  class: "text-indigo-600 hover:text-indigo-800" %>
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700 capitalize"><%= registration.age_category %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= format_euros(registration.ticket_price_cents) %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= format_euros(registration.discount_cents) %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= format_euros(registration.actual_price_cents) %></td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            <%= registration.registration_workshops.map { |rw| rw.workshop.name }.join(", ").presence || "—" %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @order.registrations.empty? %>
+        <tr>
+          <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">Aucune inscription.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

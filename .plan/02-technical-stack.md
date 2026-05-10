@@ -30,12 +30,16 @@
 
 ## Infrastructure
 
-### docker-compose.yml (development)
+### docker-compose.yml (development + test)
 
-Two services are required locally:
+Three services are required locally:
 
 ```yaml
 services:
+  app:
+    # Rails application (development on port 3000)
+    # ...
+
   postgres:
     image: postgres:16
     environment:
@@ -52,9 +56,18 @@ services:
     ports:
       - "6379:6379"
 
+  selenium:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+    shm_size: "2gb"
+
 volumes:
   postgres_data:
 ```
+
+The `selenium` service is used **only** by system specs tagged `js: true`. Most system specs use
+the `rack_test` driver and do not require Selenium. See `09-testing-strategy.md#system-specs`.
 
 ### Production
 
@@ -345,7 +358,11 @@ lib/
 
 ```bash
 # Database
-DATABASE_URL=postgresql://psalmo:psalmo@localhost:5432/psalmo_manager_development
+# Important: do not include the database name here. Rails merges DATABASE_URL with
+# config/database.yml per environment, so the DB name must come from database.yml.
+# If the DB name is hardcoded in DATABASE_URL, development and test can end up
+# pointing at the same database.
+DATABASE_URL=postgresql://psalmo:psalmo@localhost:5432
 
 # Redis
 REDIS_URL=redis://localhost:6379/0
@@ -382,6 +399,14 @@ has a well-defined structure that maps naturally to Prawn's box/table primitives
 ### Why Pagy (not Kaminari)?
 Pagy is ~40x faster than Kaminari for large datasets and has zero dependencies. The API is
 slightly different but the migration cost is negligible.
+
+### Docker env change caveat
+When `DATABASE_URL` changes in `docker-compose.yml`, `docker compose restart` is not enough to pick
+up the new environment. The app container must be recreated, e.g.:
+
+```bash
+docker compose up -d --force-recreate app
+```
 
 ### Why no Ransack?
 The filtering needs are simple enough to handle with hand-written scopes on models. Ransack
@@ -481,3 +506,36 @@ end
 | Staff profile show/edit | All financial fields, transport, km, notes |
 | Registration show + inline in participant list | `excluded_from_stats`, `is_unaccompanied_minor`, `responsible_person_note` |
 | Edition settings (`editions#edit`) | `km_rate_cents`, `name`, `start_date`, `end_date` |
+
+---
+
+## Turbo Stream + HTML Fallback Pattern
+
+Controllers that mutate data (create/destroy) and respond with `render turbo_stream:` **must also
+provide an HTML fallback** via `respond_to`. This is required so that:
+
+- `rack_test`-based system specs (which send plain HTML requests) can follow a redirect and
+  assert page content.
+- Any non-Turbo client (e.g. curl, older browser) gets a usable redirect response.
+
+```ruby
+def create
+  result = Actors::AddStaffAdvance.call(...)
+
+  if result.success?
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: [...] }
+      format.html         { redirect_to staff_profile_path(@staff_profile), notice: "Acompte ajouté." }
+    end
+  else
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.replace(...) }
+      format.html         { redirect_to staff_profile_path(@staff_profile), alert: result.error }
+    end
+  end
+end
+```
+
+**Affected controllers**: `StaffAdvancesController` (`create`, `destroy`),
+`StaffPaymentsController` (`create`, `destroy`). Auto-save controllers (`StaffProfilesController#update`,
+etc.) are exempt because they are always called via `fetch` with `Accept: text/vnd.turbo-stream.html`.

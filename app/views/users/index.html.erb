@@ -1,0 +1,38 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Utilisateurs</h1>
+  <%= link_to "Nouvel utilisateur", new_user_path,
+        class: "bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700" %>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Email</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Créé le</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      <% @users.each_with_index do |user, i| %>
+        <tr class="<%= i.even? ? 'bg-white' : 'bg-gray-50' %>">
+          <td class="px-6 py-4 text-sm text-gray-900"><%= user.email %></td>
+          <td class="px-6 py-4 text-sm text-gray-700"><%= user.created_at.strftime("%d/%m/%Y") %></td>
+          <td class="px-6 py-4 text-sm">
+            <% unless user == current_user %>
+              <%= button_to "Supprimer", user_path(user), method: :delete,
+                    class: "text-red-600 hover:text-red-800 bg-transparent border-0 p-0 cursor-pointer" %>
+            <% else %>
+              <span class="text-gray-400">Compte courant</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @users.empty? %>
+        <tr>
+          <td colspan="3" class="px-6 py-8 text-center text-sm text-gray-500">Aucun utilisateur.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
